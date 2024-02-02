@@ -16,6 +16,5 @@ protected:
     void init() override;
 
 private:
-    QString m_path;
-    QString m_triggerWord;
+    QString getUrl(QString book);
 };

@@ -8,10 +8,10 @@
         ],
         "Description": "Quickly lookup bible verses form KRunner.",
         "EnabledByDefault": true,
-        "Icon": "user-home",
+        "Icon": "bible-icon",
         "License": "GPL",
         "Name": "Bible Runner",
-        "Version": "0.1",
+        "Version": "1.0.0",
         "Website": "https://jaanonim.github.io/"
     }
 }

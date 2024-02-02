@@ -24,3 +24,7 @@ target_link_libraries(biblerunner
         KF5::KIOWidgets
         KF5::Notifications
 )
+
+# Icon from: https://www.freeiconspng.com/img/18585
+set(KDE_INSTALL_ICONDIR "/usr/share/pixmaps/" CACHE STRING "Default icon directory")
+install(FILES bible-icon.png DESTINATION ${KDE_INSTALL_ICONDIR})
