@@ -16,5 +16,12 @@ protected:
     void init() override;
 
 private:
-    QString getUrl(QString book);
+    static QString getUrl(const QString &book);
+
+    void
+    makeBrowserMatch(QList<Plasma::QueryMatch> *matches, const QString &book, const QString &text, const QString &url);
+
+    void makeCopyMatch(QList<Plasma::QueryMatch> *matches, const QString &url);
+
+    static QString getTextOfVerse(const QString &url);
 };
