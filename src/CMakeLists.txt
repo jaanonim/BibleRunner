@@ -1,5 +1,5 @@
-project(biblerunner)
 cmake_minimum_required(VERSION 3.16)
+project(biblerunner)
 
 set(KF5_MIN_VERSION "5.90")
 
