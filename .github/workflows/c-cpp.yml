@@ -18,7 +18,7 @@ jobs:
           mkdir -p build
           cd build
       - name: run cmake
-        run: cmake ../src/ -DCMAKE_INSTALL_PREFIX=`kf5-config --prefix` -DKDE_INSTALL_QTPLUGINDIR=`kf5-config --qt-plugins`
+        run: cmake ../src/
       - name: run make
         run: make
       - uses: actions/upload-artifact@v4
