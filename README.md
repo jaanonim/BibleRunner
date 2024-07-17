@@ -1,3 +1,6 @@
+> [!CAUTION] Archived
+> Use [BibleRunner-rs](https://github.com/jaanonim/BibleRunner-rs) instead.
+
 # Bible Runner
 
 Bible Runner is plugin for KRunner that allows you to quickly open verse in YouVersion Bible.
