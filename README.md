@@ -1,5 +1,5 @@
-> [!CAUTION] Archived
-> Use [BibleRunner-rs](https://github.com/jaanonim/BibleRunner-rs) instead.
+> [!CAUTION]
+> Archived - use [BibleRunner-rs](https://github.com/jaanonim/BibleRunner-rs) instead.
 
 # Bible Runner
 
