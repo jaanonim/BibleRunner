@@ -1,9 +1,10 @@
 module;
 
+#include <mutex>
 #include <optional>
 
+#include <QDebug>
 #include <QEventLoop>
-#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
@@ -12,25 +13,25 @@ module;
 #include <QRegularExpression>
 #include <QString>
 #include <QStringList>
-
-#include <KLocalizedString>
+#include <QUrl>
 
 export module biblerunner.query;
 
+import biblerunner.config;
 import biblerunner.data.books;
 
 export struct QueryMatchInfo
 {
-    QString book;
-    QString text;
-    QUrl url;
+    QString book;     // USFM book code
+    QString text;     // human text, e.g. "3:16-18"
+    QString passage;  // USFM passage for the API, e.g. "JHN.3.16", "JHN.3", "JHN.3.16-18"
+    QUrl url;         // bible.com browse URL for the configured bible
 };
 
 export struct VerseInfo
 {
-    QString title;
-    QString abbreviation;
-    QString text;
+    QString title;  // human reference + translation abbreviation, e.g. "John 3:16 BSB"
+    QString text;   // verse text
 };
 
 namespace
@@ -39,45 +40,74 @@ namespace
     const QRegularExpression bookRegex(QLatin1String(R"(([123]\s?)?\p{L}+)"));
     const QRegularExpression separatorRegex(QLatin1String(R"([-:,.]+)"));
     const QRegularExpression spaceRegex(QLatin1String("\\s"));
-    const QRegularExpression htmlRegex(QLatin1String(
-        R"(<script\s*id="__NEXT_DATA__"\s*type="application\/json"\s*>.+?(?=<\/script>\s*<\/body>\s*<\/html>))"));
-    const QRegularExpression htmlDelRegex(QLatin1String(
-        R"(<script\s*id="__NEXT_DATA__"\s*type="application\/json"\s*>)"));
 
-    QString bookUrl(const QString &book)
-    {
-        QString base = QLatin1String("https://www.bible.com/bible");
-        return i18n("%1/%2/%3.", base, QLatin1String("2095"), book);
-    }
-
-    QString getTextOfVerse(const QUrl &url)
+    QJsonDocument apiGet(const QString &appKey, const QUrl &url)
     {
         // create custom temporary event loop on stack
         QEventLoop eventLoop;
 
         // "quit()" the event-loop, when the network request "finished()"
-        QNetworkAccessManager mgr;
-        QObject::connect(&mgr, SIGNAL(finished(QNetworkReply *)), &eventLoop, SLOT(quit()));
+        QNetworkAccessManager manager;
+        QObject::connect(&manager, &QNetworkAccessManager::finished, &eventLoop, &QEventLoop::quit);
 
-        QNetworkRequest req(url);
-        QNetworkReply *reply = mgr.get(req);
+        QNetworkRequest request(url);
+        request.setRawHeader(QByteArrayLiteral("X-YVP-App-Key"), appKey.toUtf8());
+        request.setRawHeader(QByteArrayLiteral("Accept"), QByteArrayLiteral("application/json"));
+        QNetworkReply *reply = manager.get(request);
         eventLoop.exec();
 
-        if (reply->error() == QNetworkReply::NoError)
+        if (reply->error() != QNetworkReply::NoError)
         {
-            QByteArray data = reply->readAll();
+            qWarning() << "BibleRunner: request to" << url.toString() << "failed:" << reply->errorString();
             delete reply;
-            return QString::fromUtf8(data);
+            return QJsonDocument();
         }
-        else
+
+        QByteArray data = reply->readAll();
+        delete reply;
+
+        QJsonDocument doc = QJsonDocument::fromJson(data);
+        if (!doc.isObject())
         {
-            delete reply;
-            return QLatin1String("");
+            qWarning() << "BibleRunner: request to" << url.toString() << "returned non-JSON response";
+            return QJsonDocument();
         }
+        return doc;
+    }
+
+    QString bibleAbbreviation(const QString &appKey, const QString &bibleId)
+    {
+        // single-slot cache: bibleId -> abbreviation
+        static std::mutex cacheMutex;
+        std::lock_guard<std::mutex> lock(cacheMutex);
+        static QString cachedBibleId;
+        static QString cachedAbbreviation;
+
+        if (cachedBibleId == bibleId)
+        {
+            return cachedAbbreviation;
+        }
+
+        QJsonDocument doc = apiGet(appKey, QUrl(QLatin1String("https://api.youversion.com/v1/bibles/%1").arg(bibleId)));
+        QString abbreviation;
+        if (doc.isObject())
+        {
+            QJsonObject obj = doc.object();
+            abbreviation = obj.value(QLatin1String("localized_abbreviation")).toString();
+            if (abbreviation.isEmpty())
+            {
+                abbreviation = obj.value(QLatin1String("abbreviation")).toString();
+            }
+        }
+
+        // cache even if empty to avoid hammering the API; refetches when bibleId changes
+        cachedBibleId = bibleId;
+        cachedAbbreviation = abbreviation;
+        return abbreviation;
     }
 } // namespace
 
-export std::optional<QueryMatchInfo> parseQuery(const QString &rawQuery)
+export std::optional<QueryMatchInfo> parseQuery(const QString &rawQuery, const QString &bibleId)
 {
     QString query = rawQuery;
 
@@ -120,74 +150,71 @@ export std::optional<QueryMatchInfo> parseQuery(const QString &rawQuery)
 
     text = text.trimmed();
     QStringList split = text.split(separatorRegex);
-    QString url = bookUrl(book);
+    QString url = QLatin1String("https://www.bible.com/bible/%1/%2.").arg(bibleId, book);
+    QString passage = book;
     if (split.length() == 1)
     {
         text = split[0];
         url.append(split[0]);
+        passage.append(QLatin1Char('.')).append(split[0]);
     }
     else if (split.length() == 2)
     {
         text = split[0] + QLatin1Char(':') + split[1];
         url.append(split[0] + QLatin1Char('.') + split[1]);
+        passage.append(QLatin1Char('.')).append(split[0]).append(QLatin1Char('.')).append(split[1]);
     }
     else if (split.length() == 3)
     {
         text = split[0] + QLatin1Char(':') + split[1] + QLatin1Char('-') + split[2];
         url.append(split[0] + QLatin1Char('.') + split[1] + QLatin1Char('-') + split[2]);
+        passage.append(QLatin1Char('.'))
+            .append(split[0])
+            .append(QLatin1Char('.'))
+            .append(split[1])
+            .append(QLatin1Char('-'))
+            .append(split[2]);
     }
     else
     {
         return std::nullopt;
     }
 
-    return QueryMatchInfo{book, text, QUrl(url)};
+    return QueryMatchInfo{book, text, passage, QUrl(url)};
 }
 
-export std::optional<VerseInfo> fetchVerse(const QUrl &url)
+export std::optional<VerseInfo> fetchVerse(const Config &config, const QString &passage)
 {
-    QString data = getTextOfVerse(url);
-
-    if (data.length() < 1)
+    QJsonDocument doc = apiGet(
+        config.appKey,
+        QUrl(QLatin1String("https://api.youversion.com/v1/bibles/%1/passages/%2?format=text")
+                 .arg(config.bibleId, passage)));
+    if (!doc.isObject())
     {
         return std::nullopt;
     }
 
-    QRegularExpressionMatch re_match = htmlRegex.match(data);
-    if (!re_match.hasMatch())
-    {
-        return std::nullopt;
-    }
-
-    QString json_str = re_match.captured(0);
-    json_str.remove(htmlDelRegex);
-
-    QJsonObject json = QJsonDocument::fromJson(json_str.toUtf8()).object();
-
-    QJsonObject stuff = json.value(QLatin1String("props")).toObject().value(QLatin1String("pageProps")).toObject();
-
-    if (stuff.value(QLatin1String("type")).toVariant().toString() != QLatin1String("verse"))
+    QJsonObject obj = doc.object();
+    QString content = obj.value(QLatin1String("content")).toString();
+    if (content.isEmpty())
     {
         return std::nullopt;
     }
 
     VerseInfo info;
-    info.title =
-        stuff.value(QLatin1String("referenceTitle")).toObject().value(QString(QLatin1String("title"))).toVariant().toString();
-    info.abbreviation = stuff.value(QLatin1String("version"))
-                            .toObject()
-                            .value(QString(QLatin1String("local_abbreviation")))
-                            .toVariant()
-                            .toString();
-
-    QJsonArray verses_array = stuff.value(QLatin1String("verses")).toArray();
-    QString verses = QString::fromUtf8("");
-    for (auto verse : verses_array)
+    info.title = obj.value(QLatin1String("reference")).toString();
+    if (info.title.isEmpty())
     {
-        verses += verse.toObject().value(QLatin1String("content")).toVariant().toString();
-        verses += QString::fromUtf8(" ");
+        info.title = passage;
     }
-    info.text = verses.trimmed();
+
+    QString abbreviation = bibleAbbreviation(config.appKey, config.bibleId);
+    if (!abbreviation.isEmpty())
+    {
+        info.title.append(QLatin1Char(' ')).append(abbreviation);
+    }
+
+    info.text = content.trimmed();
 
     return info;
 }

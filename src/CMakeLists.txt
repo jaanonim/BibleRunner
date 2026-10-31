@@ -21,13 +21,14 @@ find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS I18n Config Runner KIO N
 kcoreaddons_add_plugin(biblerunner
         SOURCES
         biblerunner.cpp biblerunner.h
-        query.cppm 
+        query.cppm
+        config.cppm
         data/books.cppm
         INSTALL_NAMESPACE "kf6/krunner")
 # Module interface units must be tracked in a CXX_MODULES file set
 target_sources(biblerunner PRIVATE
         FILE_SET cxx_modules TYPE CXX_MODULES FILES
-        query.cppm data/books.cppm)
+        query.cppm config.cppm data/books.cppm)
 # The plugin TU imports the module, so dependency scanning is required
 set_target_properties(biblerunner PROPERTIES CXX_SCAN_FOR_MODULES ON)
 # We need to link the KRunner and other used libraries  to it

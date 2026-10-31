@@ -20,5 +20,5 @@ private:
     void
     makeBrowserMatch(QList<KRunner::QueryMatch> *matches, const QString &book, const QString &text, const QString &url);
 
-    void makeCopyMatch(QList<KRunner::QueryMatch> *matches, const QString &url);
+    void makeCopyMatch(QList<KRunner::QueryMatch> *matches, const QString &passage, const QString &url);
 };
