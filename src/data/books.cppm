@@ -1,3 +1,10 @@
+module;
+
+#include <map>
+#include <string>
+
+export module biblerunner.data.books;
+
 const std::map<std::string, std::string> BOOKS = {
         {"2mose",                   "EXO"},
         {"2mos",                    "EXO"},
@@ -562,3 +569,12 @@ const std::map<std::string, std::string> BOOKS = {
         {"ap",                      "REV"},
         {"apocalipse",              "REV"},
 };
+
+export std::string lookupBook(const std::string &raw)
+{
+    if (auto search = BOOKS.find(raw); search != BOOKS.end())
+    {
+        return search->second;
+    }
+    return {};
+}

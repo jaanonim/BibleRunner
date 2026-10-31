@@ -1,4 +1,9 @@
 .idea
+.vscode
 cmake-build-debug
 build
 .cache
+
+.vscode
+.envrc
+result
