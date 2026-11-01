@@ -41,27 +41,27 @@
         "rut",
         "rut"
     ],
-    "1SA": [
+    "_1SA": [
         "1samuel",
         "1sam"
     ],
-    "2SA": [
+    "_2SA": [
         "2samuel",
         "2sam"
     ],
-    "1KI": [
+    "_1KI": [
         "1könige",
         "1kön"
     ],
-    "2KI": [
+    "_2KI": [
         "2könige",
         "2kön"
     ],
-    "1CH": [
+    "_1CH": [
         "1chronik",
         "1chr"
     ],
-    "2CH": [
+    "_2CH": [
         "2chronik",
         "2chr"
     ],
@@ -200,11 +200,11 @@
         "römer",
         "röm"
     ],
-    "1CO": [
+    "_1CO": [
         "1korinther",
         "1kor"
     ],
-    "2CO": [
+    "_2CO": [
         "2korinther",
         "2kor"
     ],
@@ -224,19 +224,19 @@
         "kolosser",
         "kol"
     ],
-    "1TH": [
+    "_1TH": [
         "1thessalonicher",
         "1thess"
     ],
-    "2TH": [
+    "_2TH": [
         "2thessalonicher",
         "2thess"
     ],
-    "1TI": [
+    "_1TI": [
         "1timotheus",
         "1tim"
     ],
-    "2TI": [
+    "_2TI": [
         "2timotheus",
         "2tim"
     ],
@@ -256,23 +256,23 @@
         "jakobus",
         "jak"
     ],
-    "1PE": [
+    "_1PE": [
         "1petrus",
         "1petr"
     ],
-    "2PE": [
+    "_2PE": [
         "2petrus",
         "2petr"
     ],
-    "1JN": [
+    "_1JN": [
         "1johannes",
         "1joh"
     ],
-    "2JN": [
+    "_2JN": [
         "2johannes",
         "2joh"
     ],
-    "3JN": [
+    "_3JN": [
         "3johannes",
         "3joh"
     ],

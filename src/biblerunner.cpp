@@ -122,13 +122,9 @@ void BibleRunner::makeCopyMatch(QList<KRunner::QueryMatch> *matches, const QStri
 void BibleRunner::run(const KRunner::RunnerContext & /*context*/, const KRunner::QueryMatch &match)
 {
     if (match.data() == 1)
-    {
-        QProcess::startDetached(QLatin1String("x-www-browser"), {match.urls().first().toString()});
-    }
+        QProcess::startDetached(QLatin1String("xdg-open"), {match.urls().first().toString()});
     else
-    {
         QApplication::clipboard()->setText(match.text());
-    }
 }
 
 K_PLUGIN_CLASS_WITH_JSON(BibleRunner, "biblerunner.json")

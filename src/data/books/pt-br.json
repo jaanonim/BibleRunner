@@ -31,27 +31,27 @@
         "rute",
         "rt"
     ],
-    "1SA": [
+    "_1SA": [
         "1samuel",
         "1sm"
     ],
-    "2SA": [
+    "_2SA": [
         "2samuel",
         "2sm"
     ],
-    "1KI": [
+    "_1KI": [
         "1reis",
         "1rs"
     ],
-    "2KI": [
+    "_2KI": [
         "2reis",
         "2rs"
     ],
-    "1CH": [
+    "_1CH": [
         "1crônicas",
         "1cr"
     ],
-    "2CH": [
+    "_2CH": [
         "2crônicas",
         "2cr"
     ],
@@ -178,11 +178,11 @@
         "romanos",
         "rm"
     ],
-    "1CO": [
+    "_1CO": [
         "1coríntios",
         "1co"
     ],
-    "2CO": [
+    "_2CO": [
         "2coríntios",
         "2co"
     ],
@@ -202,19 +202,19 @@
         "colossenses",
         "cl"
     ],
-    "1TH": [
+    "_1TH": [
         "1tessalonicenses",
         "1ts"
     ],
-    "2TH": [
+    "_2TH": [
         "2tessalonicenses",
         "2ts"
     ],
-    "1TI": [
+    "_1TI": [
         "1timóteo",
         "1tm"
     ],
-    "2TI": [
+    "_2TI": [
         "2timóteo",
         "2tm"
     ],
@@ -234,23 +234,23 @@
         "tiago",
         "tg"
     ],
-    "1PE": [
+    "_1PE": [
         "1pedro",
         "1pe"
     ],
-    "2PE": [
+    "_2PE": [
         "2pedro",
         "2pe"
     ],
-    "1JN": [
+    "_1JN": [
         "1joão",
         "1jo"
     ],
-    "2JN": [
+    "_2JN": [
         "2joão",
         "2jo"
     ],
-    "3JN": [
+    "_3JN": [
         "3joão",
         "3jo"
     ],

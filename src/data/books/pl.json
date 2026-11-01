@@ -41,32 +41,32 @@
         "księgarut",
         "rt"
     ],
-    "1SA": [
+    "_1SA": [
         "1samuela",
         "1księgasamuela",
         "1sm"
     ],
-    "2SA": [
+    "_2SA": [
         "2samuela",
         "2księgasamuela",
         "2sm"
     ],
-    "1KI": [
+    "_1KI": [
         "1królewska",
         "1księgakrólewska",
         "1krl"
     ],
-    "2KI": [
+    "_2KI": [
         "2królewska",
         "2księgakrólewska",
         "2krl"
     ],
-    "1CH": [
+    "_1CH": [
         "kronik",
         "księgakronik",
         "1krn"
     ],
-    "2CH": [
+    "_2CH": [
         "2kronik",
         "2księgakronik",
         "2krn"
@@ -229,12 +229,12 @@
         "listdorzymian",
         "rz"
     ],
-    "1CO": [
+    "_1CO": [
         "1koryntian",
         "1listdokoryntian",
         "1kor"
     ],
-    "2CO": [
+    "_2CO": [
         "2koryntian",
         "2listdokoryntian",
         "2kor"
@@ -260,23 +260,23 @@
         "listdokolosan",
         "kol"
     ],
-    "1TH": [
+    "_1TH": [
         "1tesaloniczan",
         "1listdotesaloniczan",
         "1tes"
     ],
-    "2TH": [
+    "_2TH": [
         "2tesaloniczan",
         "2listdotesaloniczan",
         "2tes"
     ],
-    "1TI": [
+    "_1TI": [
         "1tymoteusza",
         "1listdotymoteusza",
         "1tm",
         "1tym"
     ],
-    "2TI": [
+    "_2TI": [
         "2tymoteusza",
         "2listdotymoteusza",
         "2tm",
@@ -303,27 +303,27 @@
         "listjakuba",
         "jk"
     ],
-    "1PE": [
+    "_1PE": [
         "1piotra",
         "1listpiotra",
         "1p"
     ],
-    "2PE": [
+    "_2PE": [
         "2piotra",
         "2listpiotra",
         "2p"
     ],
-    "1JN": [
+    "_1JN": [
         "1jana",
         "1listjana",
         "1j"
     ],
-    "2JN": [
+    "_2JN": [
         "2jana",
         "2listjana",
         "2j"
     ],
-    "3JN": [
+    "_3JN": [
         "3jana",
         "3listjana",
         "3j"

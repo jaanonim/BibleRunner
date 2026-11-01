@@ -31,27 +31,27 @@
         "ruth",
         "rut"
     ],
-    "1SA": [
+    "_1SA": [
         "1samuel",
         "1sa"
     ],
-    "2SA": [
+    "_2SA": [
         "2samuel",
         "2sa"
     ],
-    "1KI": [
+    "_1KI": [
         "1kings",
         "1ki"
     ],
-    "2KI": [
+    "_2KI": [
         "2kings",
         "2ki"
     ],
-    "1CH": [
+    "_1CH": [
         "1chronicles",
         "1ch"
     ],
-    "2CH": [
+    "_2CH": [
         "2chronicles",
         "2ch"
     ],
@@ -178,11 +178,11 @@
         "romans",
         "rom"
     ],
-    "1CO": [
+    "_1CO": [
         "1corinthians",
         "1co"
     ],
-    "2CO": [
+    "_2CO": [
         "2corinthians",
         "2co"
     ],
@@ -202,19 +202,19 @@
         "colossians",
         "col"
     ],
-    "1TH": [
+    "_1TH": [
         "1thessalonians",
         "1th"
     ],
-    "2TH": [
+    "_2TH": [
         "2thessalonians",
         "2th"
     ],
-    "1TI": [
+    "_1TI": [
         "1timothy",
         "1ti"
     ],
-    "2TI": [
+    "_2TI": [
         "2timothy",
         "2ti"
     ],
@@ -234,23 +234,23 @@
         "james",
         "jas"
     ],
-    "1PE": [
+    "_1PE": [
         "1peter",
         "1pe"
     ],
-    "2PE": [
+    "_2PE": [
         "2peter",
         "2pe"
     ],
-    "1JN": [
+    "_1JN": [
         "1john",
         "1jn"
     ],
-    "2JN": [
+    "_2JN": [
         "2john",
         "2jn"
     ],
-    "3JN": [
+    "_3JN": [
         "3john",
         "3jn"
     ],
