@@ -15,23 +15,24 @@ module;
 #include <QStringList>
 #include <QUrl>
 
+#include "books.h"
+
 export module biblerunner.query;
 
 import biblerunner.config;
-import biblerunner.data.books;
 
 export struct QueryMatchInfo
 {
-    QString book;     // USFM book code
-    QString text;     // human text, e.g. "3:16-18"
-    QString passage;  // USFM passage for the API, e.g. "JHN.3.16", "JHN.3", "JHN.3.16-18"
-    QUrl url;         // bible.com browse URL for the configured bible
+    QString book;    // USFM book code
+    QString text;    // human text, e.g. "3:16-18"
+    QString passage; // USFM passage for the API, e.g. "JHN.3.16", "JHN.3", "JHN.3.16-18"
+    QUrl url;        // bible.com browse URL for the configured bible
 };
 
 export struct VerseInfo
 {
-    QString title;  // human reference + translation abbreviation, e.g. "John 3:16 BSB"
-    QString text;   // verse text
+    QString title; // human reference + translation abbreviation, e.g. "John 3:16 BSB"
+    QString text;  // verse text
 };
 
 namespace
@@ -112,41 +113,30 @@ export std::optional<QueryMatchInfo> parseQuery(const QString &rawQuery, const Q
     QString query = rawQuery;
 
     if (query.startsWith(QLatin1Char('?')))
-    {
         return std::nullopt;
-    }
 
     query = query.trimmed();
 
     QRegularExpressionMatch re_match = linkRegex.match(query);
     if (!re_match.hasMatch())
-    {
         return std::nullopt;
-    }
 
     QString text = re_match.captured(0).trimmed();
     if (text.length() != query.length())
-    {
         return std::nullopt;
-    }
 
     re_match = bookRegex.match(text);
     if (!re_match.hasMatch())
-    {
         return std::nullopt;
-    }
 
     QString inBook = re_match.captured(0);
     text.remove(0, inBook.length());
     QString book = inBook.toLower().trimmed().remove(spaceRegex);
-    if (std::string search = lookupBook(book.toStdString()); search.length() != 0)
-    {
-        book = QString::fromStdString(search);
-    }
-    else
-    {
+    std::string search = lookupBook(book.toStdString());
+
+    if (search.length() == 0)
         return std::nullopt;
-    }
+    book = QString::fromStdString(search);
 
     text = text.trimmed();
     QStringList split = text.split(separatorRegex);

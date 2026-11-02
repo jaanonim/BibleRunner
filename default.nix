@@ -14,6 +14,8 @@
 # roots are passed explicitly via CXXFLAGS, which CMake reads into
 # CMAKE_CXX_FLAGS on first configure. libstdc++ is kept (instead of libc++)
 # because Qt itself is built with GCC - std::string symbols must match.
+# GCC is also on the build PATH on purpose: the C++26 reflection TU
+# (src/modules/books.cpp) is compiled by its g++ via src/CMakeLists.txt.
 let
   gccVer = gcc.cc.version;
   headerFlags = lib.concatStringsSep " " [
@@ -41,6 +43,7 @@ clangStdenv.mkDerivation {
   nativeBuildInputs = [
     cmake
     ninja
+    gcc
     kdePackages.extra-cmake-modules
     qt6.wrapQtAppsHook
   ];

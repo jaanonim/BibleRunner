@@ -13,7 +13,6 @@
 #include <mutex>
 #include <optional>
 
-import biblerunner.data.books;
 import biblerunner.query;
 import biblerunner.config;
 
