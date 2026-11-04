@@ -13,5 +13,6 @@
         "Name": "Bible Runner",
         "Version": "1.0.0",
         "Website": "https://jaanonim.github.io/"
-    }
+    },
+    "X-KDE-ConfigModule": "kf6/krunner/kcms/kcm_biblerunner"
 }

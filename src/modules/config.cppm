@@ -1,14 +1,9 @@
 module;
 
-#include <optional>
-
-#include <QDebug>
-#include <QFile>
-#include <QIODevice>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
 #include <QString>
+
+#include <KConfigGroup>
+#include <KSharedConfig>
 
 export module biblerunner.config;
 
@@ -23,54 +18,20 @@ export struct Config
     }
 };
 
-export std::optional<Config> loadConfig()
+// The config lives in the runner's KConfig group (krunnerrc / Runners[biblerunner],
+// the group returned by AbstractRunner::config()). The configuration module
+// (kcm_biblerunner) writes and reads the same group, and KRunner's KConfigWatcher
+// calls reloadConfiguration() automatically when it changes.
+export Config loadConfig()
 {
-    QString configDir = qEnvironmentVariable("BIBLERUNNER_CONFIG_PATH");
-    if (configDir.isEmpty())
-    {
-        configDir = qEnvironmentVariable("XDG_CONFIG_HOME");
-    }
-    if (configDir.isEmpty())
-    {
-        QString home = qEnvironmentVariable("HOME");
-        if (home.isEmpty())
-        {
-            return std::nullopt;
-        }
-        configDir = home + QLatin1String("/.config");
-    }
-    if (!configDir.endsWith(QLatin1Char('/')))
-    {
-        configDir += QLatin1Char('/');
-    }
-
-    QString configPath = configDir + QLatin1String("biblerunner.json");
-
-    QFile file(configPath);
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        return std::nullopt;
-    }
-
-    QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
-
-    if (parseError.error != QJsonParseError::NoError)
-    {
-        qWarning() << "BibleRunner: failed to parse config file" << configPath << ":" << parseError.errorString();
-        return std::nullopt;
-    }
-    if (!doc.isObject())
-    {
-        qWarning() << "BibleRunner: config file is not a JSON object:" << configPath;
-        return std::nullopt;
-    }
-
-    QJsonObject json = doc.object();
+    // Same construction as AbstractRunner::config(), so both sides always use
+    // Runners[biblerunner] in krunnerrc.
+    KConfigGroup runners(KSharedConfig::openConfig(QStringLiteral("krunnerrc")), QStringLiteral("Runners"));
+    KConfigGroup group = runners.group(QLatin1String("biblerunner"));
 
     Config config;
-    config.appKey = json.value(QLatin1String("app_key")).toString();
-    config.bibleId = json.value(QLatin1String("bible_id")).toVariant().toString();
+    config.appKey = group.readEntry(QLatin1String("appKey"), QString());
+    config.bibleId = group.readEntry(QLatin1String("bibleId"), QString());
 
     return config;
 }

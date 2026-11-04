@@ -55,6 +55,9 @@ clangStdenv.mkDerivation {
     kdePackages.krunner
     kdePackages.kio
     kdePackages.knotifications
+    # kcm_biblerunner (KCModule / KPasswordLineEdit)
+    kdePackages.kcmutils
+    kdePackages.kwidgetsaddons
     qt6.qtbase
   ];
 

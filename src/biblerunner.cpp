@@ -11,7 +11,6 @@
 #include <QtCore>
 #include <QObject>
 #include <mutex>
-#include <optional>
 
 import biblerunner.query;
 import biblerunner.config;
@@ -19,9 +18,9 @@ import biblerunner.config;
 namespace
 {
     std::mutex configMutex;
-    std::optional<Config> config;
+    Config config;
 
-    std::optional<Config> loadConfigGuarded()
+    Config loadConfigGuarded()
     {
         std::lock_guard lock(configMutex);
         return config;
@@ -51,12 +50,12 @@ void BibleRunner::init()
 
 void BibleRunner::match(KRunner::RunnerContext &context)
 {
-    std::optional<Config> loaded = loadConfigGuarded();
+    Config loaded = loadConfigGuarded();
 
     QString bibleId = QLatin1String("2095"); // fallback default translation
-    if (loaded && !loaded->bibleId.isEmpty())
+    if (!loaded.bibleId.isEmpty())
     {
-        bibleId = loaded->bibleId;
+        bibleId = loaded.bibleId;
     }
 
     auto info = parseQuery(context.query(), bibleId);
@@ -67,7 +66,7 @@ void BibleRunner::match(KRunner::RunnerContext &context)
 
     QList<KRunner::QueryMatch> matches;
     makeBrowserMatch(&matches, info->book, info->text, info->url.toString());
-    if (loaded && loaded->isConfigured())
+    if (loaded.isConfigured())
     {
         makeCopyMatch(&matches, info->passage, info->url.toString());
     }
@@ -95,13 +94,10 @@ void BibleRunner::makeBrowserMatch(QList<KRunner::QueryMatch> *matches, const QS
 
 void BibleRunner::makeCopyMatch(QList<KRunner::QueryMatch> *matches, const QString &passage, const QString &url)
 {
-    std::optional<Config> loaded = loadConfigGuarded();
-    if (!loaded)
-    {
-        return;
-    }
-
-    auto info = fetchVerse(*loaded, passage);
+    // Only called with a configured runner (gated in match()); the guarded copy is
+    // taken here so a concurrent reloadConfiguration() cannot tear down the Config
+    // while the network request uses it.
+    auto info = fetchVerse(loadConfigGuarded(), passage);
     if (!info)
     {
         return;

@@ -15,7 +15,7 @@ include(FeatureSummary)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS I18n Config Runner KIO Notifications)
+find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS I18n Config Runner KIO Notifications KCMUtils WidgetsAddons)
 
 set(MODULES_FILES
     modules/query.cppm
@@ -101,6 +101,29 @@ target_link_libraries(biblerunner
         KF6::KIOWidgets
         KF6::Notifications
 )
+
+# Configuration module, launched from the KRunner configuration page (see
+# https://develop.kde.org/docs/plasma/krunner/#runner-configuration). It has no
+# embedded JSON metadata on purpose: it is referenced from the runner metadata via
+# X-KDE-ConfigModule (src/biblerunner.json) and exported with K_PLUGIN_CLASS.
+# Building it here keeps the config source, metadata and install steps in one place.
+kcoreaddons_add_plugin(kcm_biblerunner
+        SOURCES
+        kcm_biblerunner.cpp kcm_biblerunner.h
+        INSTALL_NAMESPACE "kf6/krunner/kcms")
+# The version selector reads the shipped bible version list from the install prefix
+target_compile_definitions(kcm_biblerunner PRIVATE
+        BIBLERUNNER_VERSIONS_FILE="${KDE_INSTALL_FULL_DATADIR}/biblerunner/versions.json")
+target_link_libraries(kcm_biblerunner
+        Qt6::Widgets
+        KF6::I18n
+        KF6::ConfigCore
+        KF6::KCMUtils
+        KF6::WidgetsAddons
+)
+
+# Bible version list consumed by the kcm_biblerunner version selector
+install(FILES data/versions.json DESTINATION ${KDE_INSTALL_DATADIR}/biblerunner)
 
 set(KDE_INSTALL_ICONDIR "/usr/share/pixmaps/" CACHE STRING "Default icon directory")
 install(FILES bible-icon.png DESTINATION ${KDE_INSTALL_ICONDIR})
