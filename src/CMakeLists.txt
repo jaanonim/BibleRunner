@@ -16,20 +16,41 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS I18n Config Runner KIO Notifications KCMUtils WidgetsAddons)
+# The shared YouVersion Platform API module (modules/api.cppm) and the
+# configuration module (kcm_biblerunner) fetch from api.youversion.com,
+# which needs QtNetwork
+find_package(Qt6 REQUIRED COMPONENTS Network)
 
-set(MODULES_FILES
-    modules/query.cppm
+# Modules shared by this project: modules/api.cppm (the YouVersion Platform
+# API layer) and modules/config.cppm (the config file access) are both
+# imported by the runner and the configuration module. A module that one
+# target imports from another must be provided with a PUBLIC (not PRIVATE)
+# CXX_MODULES file set, so they cannot live inside one plugin target like
+# runner-only modules/query.cppm or kcm-only modules/cache.cppm: the shared
+# ones are built into a small static library that both plugins link, which
+# also keeps the API base URL and the config group name defined exactly once.
+set(SHARED_MODULES
+    modules/api.cppm
     modules/config.cppm
+)
+add_library(biblerunner_shared STATIC)
+target_sources(biblerunner_shared PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES FILES ${SHARED_MODULES})
+set_target_properties(biblerunner_shared PROPERTIES CXX_SCAN_FOR_MODULES ON)
+target_link_libraries(biblerunner_shared PUBLIC Qt6::Network KF6::ConfigCore)
+
+# The plugin's own modules (nothing else imports them)
+set(RUNNER_MODULES
+    modules/query.cppm
 )
 
 # This takes care of building and installing the plugin
 kcoreaddons_add_plugin(biblerunner
         SOURCES
         biblerunner.cpp biblerunner.h
-        ${MODULES_FILES}
+        ${RUNNER_MODULES}
         INSTALL_NAMESPACE "kf6/krunner")
 # Module interface units must be tracked in a CXX_MODULES file set
-target_sources(biblerunner PRIVATE FILE_SET cxx_modules TYPE CXX_MODULES FILES ${MODULES_FILES})
+target_sources(biblerunner PRIVATE FILE_SET cxx_modules TYPE CXX_MODULES FILES ${RUNNER_MODULES})
 # The plugin TU imports the module, so dependency scanning is required
 set_target_properties(biblerunner PROPERTIES CXX_SCAN_FOR_MODULES ON)
 
@@ -95,6 +116,7 @@ set_source_files_properties("${BOOKS_OBJ}" PROPERTIES EXTERNAL_OBJECT TRUE GENER
 target_sources(biblerunner PRIVATE "${BOOKS_OBJ}")
 # We need to link the KRunner and other used libraries  to it
 target_link_libraries(biblerunner
+        biblerunner_shared
         KF6::I18n
         KF6::ConfigCore
         KF6::Runner
@@ -111,19 +133,21 @@ kcoreaddons_add_plugin(kcm_biblerunner
         SOURCES
         kcm_biblerunner.cpp kcm_biblerunner.h
         INSTALL_NAMESPACE "kf6/krunner/kcms")
-# The version selector reads the shipped bible version list from the install prefix
-target_compile_definitions(kcm_biblerunner PRIVATE
-        BIBLERUNNER_VERSIONS_FILE="${KDE_INSTALL_FULL_DATADIR}/biblerunner/versions.json")
 target_link_libraries(kcm_biblerunner
+        biblerunner_shared
+        Qt6::Network
         Qt6::Widgets
         KF6::I18n
         KF6::ConfigCore
         KF6::KCMUtils
         KF6::WidgetsAddons
 )
-
-# Bible version list consumed by the kcm_biblerunner version selector
-install(FILES data/versions.json DESTINATION ${KDE_INSTALL_DATADIR}/biblerunner)
+# The KCM translation unit imports the shared biblerunner.api/biblerunner.config
+# modules and provides its own modules/cache.cppm (the version catalog cache;
+# nothing else uses it), so a CXX_MODULES-in-TU dependency scan is needed,
+# which is not on by default for this target
+set_target_properties(kcm_biblerunner PROPERTIES CXX_SCAN_FOR_MODULES ON)
+target_sources(kcm_biblerunner PRIVATE FILE_SET cxx_modules TYPE CXX_MODULES FILES modules/cache.cppm)
 
 set(KDE_INSTALL_ICONDIR "/usr/share/pixmaps/" CACHE STRING "Default icon directory")
 install(FILES bible-icon.png DESTINATION ${KDE_INSTALL_ICONDIR})
