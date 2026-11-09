@@ -7,15 +7,10 @@
   kdePackages,
   qt6,
 }:
-# GCC 16 hard-errors on Qt 6.12 headers used inside C++20 module units
-# (P1815 "exposes TU-local entity" diagnostics that cannot be turned off),
-# so the plugin is built with Clang. clang-scan-deps only honors flags from
-# the command line (it skips the nix cc-wrapper's own flags), so the header
-# roots are passed explicitly via CXXFLAGS, which CMake reads into
-# CMAKE_CXX_FLAGS on first configure. libstdc++ is kept (instead of libc++)
-# because Qt itself is built with GCC - std::string symbols must match.
-# GCC is also on the build PATH on purpose: the C++26 reflection TU
-# (src/modules/books.cpp) is compiled by its g++ via src/CMakeLists.txt.
+# clang, not gcc: gcc 16 rejects Qt headers inside C++20 module units, and
+# clang-scan-deps only honors command-line flags (hence CXXFLAGS below).
+# libstdc++ stays (Qt itself is built with gcc); gcc is on PATH for the C++26
+# TU compiled by src/CMakeLists.txt (src/modules/books.cpp).
 let
   gccVer = gcc.cc.version;
   headerFlags = lib.concatStringsSep " " [
@@ -32,8 +27,7 @@ clangStdenv.mkDerivation {
   version = "1.0.0";
 
   env.CXXFLAGS = headerFlags;
-  # Link-time flags are kept out of CXXFLAGS (which also applies to plain
-  # compile jobs) and are consumed only by the cc-wrapper during linking.
+  # link flags stay out of CXXFLAGS (which also hits compile jobs)
   env.NIX_LDFLAGS = "-L${gcc.cc.lib}/lib -rpath ${gcc.cc.lib}/lib";
 
   passthru.headerFlags = headerFlags;
@@ -63,6 +57,5 @@ clangStdenv.mkDerivation {
 
   doCheck = false;
 
-  # C++20 module target requires the Ninja generator
-  cmakeFlags = ["-GNinja"];
+  cmakeFlags = ["-GNinja"]; # C++20 modules need Ninja
 }

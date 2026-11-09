@@ -17,7 +17,7 @@ protected:
     void init() override;
 
 private:
-    // tags stored in the match data and interpreted by run()
+    // match data tags, consumed by run()
     enum MatchAction
     {
         Copy = 0,
@@ -30,6 +30,5 @@ private:
 
     void makeCopyMatch(QList<KRunner::QueryMatch> *matches, const QString &passage, const QString &url);
 
-    // hint match shown instead of the copy match while no API key is set
     void makeSetKeyMatch(QList<KRunner::QueryMatch> *matches);
 };

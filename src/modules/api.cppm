@@ -1,12 +1,3 @@
-// The YouVersion Platform API layer (https://api.youversion.com/v1), shared
-// by the runner plugin and its configuration module: building the endpoint
-// URLs, submitting the requests and handling the replies all live in this
-// module, so no call site holds the API base URL or the request headers.
-// Besides the blocking fetchVerse() used by the runner thread it also runs
-// the whole version catalog fetch of the configuration module (one languages
-// request plus one request per page of the paged bibles walk), reported
-// through callbacks so the configuration UI never has to block.
-
 module;
 
 #include <functional>
@@ -35,38 +26,35 @@ export module biblerunner.api;
 
 export struct VerseInfo
 {
-    QString title; // human reference + translation abbreviation, e.g. "John 3:16 BSB"
-    QString text;  // verse text
+    QString title; // "John 3:16 BSB"
+    QString text;
 };
 
 namespace
 {
     constexpr char API_BASE_URL[] = "https://api.youversion.com/v1";
 
-    constexpr int CATALOG_PAGE_SIZE = 99; // page_size must be between 1 and 99
+    constexpr int CATALOG_PAGE_SIZE = 99; // API max page_size
     constexpr int CATALOG_TIMEOUT_MS = 15000;
 
-    // GET /v1/bibles/{id}: details of one version, used for its abbreviation
+    // GET /v1/bibles/{id}
     QUrl bibleInfoUrl(const QString &bibleId)
     {
         return QUrl(QStringLiteral("%1/bibles/%2").arg(API_BASE_URL, bibleId));
     }
 
-    // GET /v1/bibles/{id}/passages/{usfm}?format=text: text of one passage
+    // GET /v1/bibles/{id}/passages/{usfm}?format=text
     QUrl biblePassagesUrl(const QString &bibleId, const QString &passage)
     {
         return QUrl(QStringLiteral("%1/bibles/%2/passages/%3?format=text").arg(API_BASE_URL, bibleId, passage));
     }
 
-    // GET /v1/languages: languages that carry bible content, with display names
+    // GET /v1/languages
     QUrl languagesUrl()
     {
         QUrl url(QStringLiteral("%1/languages").arg(API_BASE_URL));
         QUrlQuery query;
-        // bibles_available=true restricts to languages that carry bible content.
-        // Only two fields are requested, which unlocks page_size=* (the whole
-        // list in one response; inside the fields parameter three or more fields
-        // force pagination).
+        // only two fields => page_size=* allowed (whole list in one response)
         query.addQueryItem(QLatin1String("bibles_available"), QStringLiteral("true"));
         query.addQueryItem(QStringLiteral("fields[]"), QLatin1String("id"));
         query.addQueryItem(QStringLiteral("fields[]"), QLatin1String("localized_name"));
@@ -75,16 +63,13 @@ namespace
         return url;
     }
 
-    // GET /v1/bibles: the whole platform catalog of versions, walked one page of
-    // CATALOG_PAGE_SIZE entries at a time by passing back the page token
+    // GET /v1/bibles, paged
     QUrl biblesCatalogUrl(const QString &pageToken)
     {
         QUrl url(QStringLiteral("%1/bibles").arg(API_BASE_URL));
         QUrlQuery query;
-        // all_available=true lists the whole catalog, not only the versions
-        // licensed to this app key. Four fields are requested, so page_size=* is
-        // not allowed: the list is walked page by page instead (a little over 30
-        // requests of 99 entries each).
+        // all_available=true: whole catalog, not only the versions licensed
+        // to this key; >2 fields => page_size=* not allowed, so we paginate
         query.addQueryItem(QLatin1String("all_available"), QStringLiteral("true"));
         query.addQueryItem(QLatin1String("language_ranges[]"), QStringLiteral("*"));
         query.addQueryItem(QStringLiteral("fields[]"), QLatin1String("id"));
@@ -103,19 +88,18 @@ namespace
 
 namespace
 {
-    // Requested with the standard YouVersion Platform headers
     QNetworkReply *submitGet(QNetworkAccessManager *network, const QUrl &url, const QString &appKey)
     {
         QNetworkRequest request(url);
         request.setRawHeader(QByteArrayLiteral("X-YVP-App-Key"), appKey.toUtf8());
         request.setRawHeader(QByteArrayLiteral("Accept"), QByteArrayLiteral("application/json"));
-        // English language display names, independent of the host process locale
+        // English display names regardless of locale
         request.setRawHeader(QByteArrayLiteral("Accept-Language"), QByteArrayLiteral("en"));
         request.setTransferTimeout(CATALOG_TIMEOUT_MS);
         return network->get(request);
     }
 
-    // HTTP status check of a reply; 204 counts as an empty-but-successful body
+    // 204 counts as success (empty body)
     bool replyOk(QNetworkReply *reply, QString *error)
     {
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -132,7 +116,6 @@ namespace
         return true;
     }
 
-    // Body of a successful reply as JSON (empty document on HTTP 204)
     QJsonDocument replyJson(QNetworkReply *reply)
     {
         QJsonParseError parseError;
@@ -145,25 +128,19 @@ namespace
     }
 } // namespace
 
-// Result of the languages request of one catalog fetch
 export struct LanguagesResult
 {
-    QJsonObject languages; // language id (BCP 47) -> display name
-    QString error;         // empty on success; a body that is not the expected
-                           // JSON object also yields an empty map without error
+    QJsonObject languages; // language id -> display name
+    QString error;         // empty on success
 };
 
-// Result of the paged bibles walk of one catalog fetch
 export struct BiblesResult
 {
-    QVector<BibleEntry> bibles; // versions of every page fetched so far
-                                // (partial when the walk ended with an error)
+    QVector<BibleEntry> bibles; // partial when the walk hit an error
     QString error;              // empty on success
 };
 
-// GET /v1/languages (non-blocking): languages that carry bible content, with
-// display names. done() is invoked once, from the reply's finished() signal;
-// the connection is made to guard, so nothing runs after guard is destroyed.
+// GET /v1/languages; done() is invoked once from reply->finished(), bound to guard
 export void fetchLanguages(QNetworkAccessManager *network, const QString &appKey, QObject *guard,
                            const std::function<void(LanguagesResult)> &done)
 {
@@ -200,11 +177,7 @@ export void fetchLanguages(QNetworkAccessManager *network, const QString &appKey
 
 namespace
 {
-    // One page of the /v1/bibles walk: the entries are carried down the chain,
-    // and either the walk result is reported or the next page is requested by
-    // following next_page_token. When cancelled() returns true (the caller has
-    // started a newer fetch), the walk stops and done() is never called; the
-    // connection to guard makes every handler equally safe after destruction.
+    // one page of the /v1/bibles walk; a superseded fetch stops silently
     void fetchBiblesPage(QNetworkAccessManager *network, const QString &appKey, QObject *guard,
                          const std::function<bool()> &cancelled, const QString &pageToken,
                          QVector<BibleEntry> entries, const std::function<void(BiblesResult)> &done)
@@ -235,7 +208,6 @@ namespace
                     const QJsonDocument doc = replyJson(reply);
                     if (!doc.isObject())
                     {
-                        // plain error text, displayed by the caller
                         done(BiblesResult{std::move(entries), QStringLiteral("unexpected response body from the YouVersion API")});
                         return;
                     }
@@ -271,12 +243,7 @@ namespace
     }
 } // namespace
 
-// GET /v1/bibles (non-blocking): walks the whole platform catalog of versions
-// one page at a time, following next_page_token, and reports every entry
-// accumulated when the walk ends (also after an error, with the pages fetched
-// so far). cancelled() is checked before every page request, so a superseded
-// fetch stops issuing requests and never reports; like the languages request,
-// the reply connections are made to guard.
+// paged walk over the whole /v1/bibles catalog; reports success and errors alike
 export void fetchBibles(QNetworkAccessManager *network, const QString &appKey, QObject *guard,
                         const std::function<bool()> &cancelled,
                         const std::function<void(BiblesResult)> &done)
@@ -286,8 +253,7 @@ export void fetchBibles(QNetworkAccessManager *network, const QString &appKey, Q
 
 namespace
 {
-    // Blocking GET + JSON parse used by the runner thread: a custom temporary
-    // event loop is run on the stack and quit() when the request finishes()
+    // blocking GET for the runner thread
     QJsonDocument apiGet(const QString &appKey, const QUrl &url)
     {
         QEventLoop eventLoop;
@@ -317,7 +283,7 @@ namespace
 
     QString bibleAbbreviation(const QString &appKey, const QString &bibleId)
     {
-        // single-slot cache: bibleId -> abbreviation
+        // single-slot cache
         static std::mutex cacheMutex;
         std::lock_guard<std::mutex> lock(cacheMutex);
         static QString cachedBibleId;
@@ -340,15 +306,13 @@ namespace
             }
         }
 
-        // cache even if empty to avoid hammering the API; refetches when bibleId changes
+        // cached even when empty (don't hammer the API)
         cachedBibleId = bibleId;
         cachedAbbreviation = abbreviation;
         return abbreviation;
     }
 } // namespace
 
-// GET the text of one passage plus the reference the API resolved it to,
-// titled with the version abbreviation
 export std::optional<VerseInfo> fetchVerse(const QString &appKey, const QString &bibleId, const QString &passage)
 {
     QJsonDocument doc = apiGet(appKey, biblePassagesUrl(bibleId, passage));

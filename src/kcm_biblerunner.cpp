@@ -1,6 +1,3 @@
-// Created by jaanonim on 02.11.26.
-//
-
 #include "kcm_biblerunner.h"
 
 #include <KLocalizedString>
@@ -26,14 +23,6 @@
 #include <utility>
 #include <vector>
 
-// The YouVersion API layer (endpoint URLs, request submission, reply handling
-// and the whole catalog fetch: the languages request and the paged bibles
-// walk with their callback reporting) and the catalog cache file (source of
-// the combo entries and target of successful fetches) live in the
-// biblerunner.api and biblerunner.cache modules, which are shared with the
-// runner plugin; the config file (krunnerrc) is handled by loadConfig()/
-// saveConfig() in biblerunner.config. Only the fetch scheduling, the
-// stale-generation bookkeeping and the UI stay local here.
 import biblerunner.api;
 import biblerunner.cache;
 import biblerunner.config;
@@ -42,16 +31,13 @@ K_PLUGIN_CLASS(BibleRunnerConfig)
 
 namespace
 {
-    // Fetches are debounced: the refresh cadence of the cached catalog (how
-    // often it may be updated, and the rate-limit rationale) lives in the
-    // biblerunner.cache module.
     constexpr int CATALOG_DEBOUNCE_MS = 700;
 } // namespace
 
 BibleRunnerConfig::BibleRunnerConfig(QObject *parent, const KPluginMetaData &data, const QVariantList & /*args*/)
     : KCModule(qobject_cast<QWidget *>(parent), data)
 {
-    // KCModule is not a QWidget itself; widget() returns the embedded widget
+    // KCModule itself is no widget
     QWidget *const widget = this->widget();
     auto *const layout = new QFormLayout(widget);
     layout->setContentsMargins(10, 10, 10, 10);
@@ -64,18 +50,12 @@ BibleRunnerConfig::BibleRunnerConfig(QObject *parent, const KPluginMetaData &dat
 
     network = new QNetworkAccessManager(this);
 
-    // Fetch the version catalog from the YouVersion API once the user pauses
-    // typing; startFetch() is a no-op without a key
     fetchDebounce = new QTimer(this);
     fetchDebounce->setSingleShot(true);
     fetchDebounce->setInterval(CATALOG_DEBOUNCE_MS);
     connect(fetchDebounce, &QTimer::timeout, this, &BibleRunnerConfig::startFetch);
 
-    // Manual refetch of the version catalog: bypasses both the debounce timer
-    // and the cache age. Usable only with an API key, so the enabled state
-    // follows the key contents; load() and defaults() update it, too, because
-    // their blocked passwordChanged does not reach the lambda below
-    refreshButton = new QPushButton(widget);
+    refreshButton = new QPushButton(widget); // bypasses debounce and cache age
     refreshButton->setIcon(QIcon::fromTheme(QStringLiteral("view-refresh")));
     refreshButton->setAutoDefault(false);
     refreshButton->setToolTip(i18nc("@info:tooltip", "Refetch the bible version list from the YouVersion Platform API"));
@@ -91,13 +71,10 @@ BibleRunnerConfig::BibleRunnerConfig(QObject *parent, const KPluginMetaData &dat
         scheduleFetch();
         markAsChanged(); });
 
-    // Populate before connecting the combo's changed signal, so no spurious
-    // markAsChanged() fires while the UI state is being established
+    // populate before the signals fire, avoiding spurious markAsChanged()
     cache = readCatalogCache();
     applyCatalog();
 
-    // The fetched version list is long (thousands of entries): let the user
-    // type to filter it
     QCompleter *const completer = new QCompleter(bibleIdCombo->model(), bibleIdCombo);
     completer->setFilterMode(Qt::MatchContains);
     completer->setCaseSensitivity(Qt::CaseInsensitive);
@@ -120,7 +97,6 @@ BibleRunnerConfig::BibleRunnerConfig(QObject *parent, const KPluginMetaData &dat
     infoLabel->setWordWrap(true);
 
     layout->addRow(i18nc("@label:textbox YouVersion Platform API key", "API key:"), appKeyEdit);
-    // the refresh button sits next to the version list it refetches
     auto *const versionLayout = new QHBoxLayout;
     versionLayout->setContentsMargins(0, 0, 0, 0);
     versionLayout->addWidget(bibleIdCombo, 1);
@@ -137,7 +113,6 @@ BibleRunnerConfig::BibleRunnerConfig(QObject *parent, const KPluginMetaData &dat
 
 void BibleRunnerConfig::scheduleFetch()
 {
-    // Reset the debounce timer, so one fetch runs after the last keystroke
     if (appKeyEdit->password().isEmpty())
     {
         return;
@@ -152,10 +127,7 @@ void BibleRunnerConfig::startFetch()
         return;
     }
 
-    // Cancel any in-flight fetch: this generation replaces the catalog data
-    // from scratch, and replies of earlier generations bail out early. The
-    // fetch itself replaces cache.bibles, so the cached fetchedAt (age) is
-    // left until a new fetch succeeds.
+    // supersede any in-flight fetch
     const int generation = ++fetchGeneration;
     languagesDone = false;
     biblesDone = false;
@@ -165,10 +137,6 @@ void BibleRunnerConfig::startFetch()
 
     statusLabel->setText(i18n("Fetching bible versions from the YouVersion API…"));
 
-    // The api module runs both requests in parallel and reports each one once
-    // its reply (for bibles: the last page) has been handled. cancelled stops
-    // the paged bibles walk as soon as this generation is superseded; replies
-    // of a stale generation are dropped by the generation check in the lambdas.
     const QString appKey = appKeyEdit->password();
     const auto cancelled = [this, generation]()
     {
@@ -217,7 +185,7 @@ void BibleRunnerConfig::finishFetch(int generation)
 
     if (fetchError.isEmpty() && !cache.bibles.isEmpty())
     {
-        // the catalog belongs to this key: load()/save() skip re-fetching it
+        // catalog belongs to this key
         fetchedKey = appKeyEdit->password();
         cache.fetchedAt = QDateTime::currentSecsSinceEpoch();
         writeCatalogCache(cache);
@@ -228,14 +196,12 @@ void BibleRunnerConfig::finishFetch(int generation)
 
     if (fetchError.isEmpty() && cache.bibles.isEmpty())
     {
-        applyCatalog(); // clears the combo (HTTP 204: no versions for this key/ranges)
+        applyCatalog(); // HTTP 204: nothing for this key
         statusLabel->setText(i18n("No bible versions available for this request."));
         return;
     }
 
-    // The fetch failed. Keep what arrived: the bibles part may still be fresh
-    // when only the languages request failed, and restore the cached entries
-    // for everything else, so the list never shrinks below the cached one.
+    // on failure: keep what arrived, restore the rest from the cache
     const CatalogCache cached = readCatalogCache();
 
     if (cache.bibles.isEmpty())
@@ -256,8 +222,7 @@ void BibleRunnerConfig::applyCatalog()
     versions.reserve(cache.bibles.size());
     for (const BibleEntry &bible : std::as_const(cache.bibles))
     {
-        // Same display format as the previously shipped versions.json list:
-        // "language — title (abbreviation)"
+        // "language - title (abbreviation)"
         QString language = cache.languages.value(bible.languageTag).toString();
         if (language.isEmpty())
         {
@@ -293,8 +258,7 @@ void BibleRunnerConfig::reselectSaved()
     int index = bibleIdCombo->findData(wanted);
     if (index < 0 && !savedBibleId.isEmpty())
     {
-        // The stored id is not in the fetched catalog (yet); keep it selectable
-        // so that save() does not drop the setting while data is loading
+        // stored id not in the fetched list (yet); keep it selectable
         QString label = i18nc("@item:inlistbox version id not found in the version list",
                               "%1 (unknown version)", wanted);
         if (bibleIdCombo->findText(label) < 0)
@@ -322,9 +286,6 @@ void BibleRunnerConfig::load()
 
     reselectSaved();
 
-    // Refresh in the background only when the cached catalog is older than a
-    // month (catalogCacheStale() also covers the no-cache-yet case); the
-    // refresh button refetches at any time
     if (!stored.appKey.isEmpty() && catalogCacheStale(cache))
     {
         fetchDebounce->start(CATALOG_DEBOUNCE_MS);
@@ -336,14 +297,8 @@ void BibleRunnerConfig::load()
 
 void BibleRunnerConfig::save()
 {
-    // A fetched catalog entry stores the version id as item data; hand-typed
-    // text has none. currentData() alone cannot tell them apart: the editable
-    // line edit keeps the index of the previously selected item while the user
-    // types (NoInsert inserts nothing), so its data would silently replace the
-    // typed id with what was selected before (the default placeholder). The
-    // data is therefore only used when the shown text is that item's text;
-    // otherwise a non-empty hand-typed id is stored as-is, so it survives
-    // reopening the settings instead of falling back to the default.
+    // itemData is only trusted when it matches the shown text: while the user
+    // types, the line edit keeps the index (and data) of the previous item.
     const QString typed = bibleIdCombo->currentText().trimmed();
     const int index = bibleIdCombo->currentIndex();
     QVariant versionId;
@@ -365,9 +320,7 @@ void BibleRunnerConfig::save()
     current.bibleId = savedBibleId;
     saveConfig(current);
 
-    // The typed key may not have been fetched yet (the debounce timer has not
-    // run): refresh at once so the combo shows real entries instead of the
-    // "(unknown version)" placeholder
+    // new key: fetch now instead of waiting for the debounce
     if (!appKeyEdit->password().isEmpty() && appKeyEdit->password() != fetchedKey)
     {
         fetchDebounce->stop();
@@ -375,8 +328,6 @@ void BibleRunnerConfig::save()
     }
 
     setNeedsSave(false);
-    // same check as load(): the default state is an empty key and the default
-    // version id (now also reachable by typing the default id by hand)
     setRepresentsDefaults(appKeyEdit->password().isEmpty() && savedBibleId == QLatin1String(DEFAULT_BIBLE_ID));
 }
 

@@ -18,7 +18,6 @@ in
       just-lsp
     ];
 
-    # clang-scan-deps ignores the cc-wrapper's own include flags, so the
-    # header roots must be on the command line, like in default.nix.
+    # clang-scan-deps needs the flags on the command line (see default.nix)
     shellHook = ''export CXXFLAGS="${biblerunner.headerFlags}"'';
   }

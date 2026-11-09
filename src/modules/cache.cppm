@@ -1,10 +1,3 @@
-// Handling of the bible version catalog cache: a single JSON file under
-// QStandardPaths::CacheLocation that keeps the last successfully fetched
-// language names and bible versions, so that the configuration module opens
-// instantly and still shows a version list when offline. The data model
-// (BibleEntry / CatalogCache) is shared with the plain headers of the
-// configuration module, see modules/catalog.h.
-
 module;
 
 #include <QDateTime>
@@ -26,12 +19,7 @@ export module biblerunner.cache;
 
 namespace
 {
-    // Refresh the cached catalog at most once a month; a fetch itself is one
-    // languages request plus one request per paged bibles response. The API
-    // rate limit is generous, and a 429 just fails the fetch and keeps the
-    // cache, so no out-of-band retrying is done here. The per-request timeout
-    // and the catalog page size live in the shared API module.
-    constexpr qint64 CATALOG_CACHE_MAX_AGE_SECS = 30 * 24 * 3600;
+    constexpr qint64 CATALOG_CACHE_MAX_AGE_SECS = 30 * 24 * 3600; // a month
 
     QString catalogCacheDir()
     {
@@ -44,8 +32,6 @@ namespace
     }
 } // namespace
 
-// The cached catalog: empty (no bible entries, fetchedAt 0) when the cache
-// file is missing or invalid
 export CatalogCache readCatalogCache()
 {
     CatalogCache cache;
@@ -88,7 +74,6 @@ export CatalogCache readCatalogCache()
     return cache;
 }
 
-// Replace the cache file with the catalog given
 export void writeCatalogCache(const CatalogCache &cache)
 {
     QDir().mkpath(catalogCacheDir());
@@ -109,7 +94,7 @@ export void writeCatalogCache(const CatalogCache &cache)
     root.insert(QLatin1String("languages"), cache.languages);
     root.insert(QLatin1String("bibles"), bibles);
 
-    // Atomic replace, so an interrupted write cannot corrupt the cache
+    // atomic replace
     QSaveFile file(catalogCachePath());
     if (!file.open(QIODevice::WriteOnly))
     {
@@ -119,8 +104,6 @@ export void writeCatalogCache(const CatalogCache &cache)
     file.commit();
 }
 
-// Whether the catalog has to be fetched again: no version has ever arrived,
-// or the last successful fetch is older than CATALOG_CACHE_MAX_AGE_SECS
 export bool catalogCacheStale(const CatalogCache &cache)
 {
     if (cache.bibles.isEmpty() || cache.fetchedAt <= 0)

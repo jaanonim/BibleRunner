@@ -8,28 +8,23 @@
 #include <string_view>
 #include <type_traits>
 
-// CMake-generated: BOOK_TABLE_COUNT, the per-file BOOK_TABLE_<i> embedded C
-// strings with their BOOK_DOC_<i> documents, and the BOOK_DOCS pack macro
-// (one book alias table per src/data/books/*.json, in file-name order).
+// CMake-generated alias tables, see src/CMakeLists.txt
 #include "books_tables.h"
 
 #include "books.h"
 
 namespace
 {
-    // One lookup row: alias spelling -> 3-letter USFM book code.
     struct Entry
     {
-        std::string_view name; // localized spelling, e.g. "wyjścia"
-        std::string_view code; // USFM book code, e.g. "EXO"
-        std::size_t order;     // table-order index, breaks equal-name ties
+        std::string_view name; // alias, e.g. "wyjścia"
+        std::string_view code; // USFM code, e.g. "EXO"
+        std::size_t order;     // file order, breaks name ties
     };
 
-    // parse_json generates a structure where every JSON key becomes a data
-    // member and every string of its array one alias. The reflection helpers
-    // below see the document through a template reference parameter: an
-    // expansion statement cannot read an ordinary function parameter as a
-    // constant expression.
+    // every JSON key becomes a member, its array strings the aliases;
+    // the doc must be a template parameter (expansion statements can't
+    // read ordinary function parameters)
     template <auto &DOC>
     consteval std::size_t countDoc()
     {
@@ -46,18 +41,13 @@ namespace
         return count;
     }
 
-    // Sums the alias counts of the BOOK_DOCS tables. A unary fold needs no
-    // recursion helper: it also folds an empty pack to 0, which yields an
-    // empty table when the src/data/books/*.json glob matched nothing.
+    // empty pack folds to 0
     template <auto &...DOCS>
     consteval std::size_t countAll() { return (countDoc<DOCS>() + ...); }
 
     constexpr std::size_t ALIAS_COUNT = countAll<BOOK_DOCS>();
 
-    // Extracts the USFM code from a data-member identifier. Digit-led book
-    // codes ("1SA") were embedded mangled to "_1SA", since identifiers cannot
-    // start with a digit. The demangled text is promoted to static storage so
-    // the resulting string_view stays valid at runtime.
+    // digit-led keys were mangled ("_1SA"); static storage keeps the view valid
     consteval std::string_view demangleCode(std::string_view key)
     {
         std::size_t skip = 0;
@@ -87,9 +77,6 @@ namespace
         return out;
     }
 
-    // Appends a per-file chunk to the master table. The master index replaces
-    // the per-file chunk index, so equal-name ties are broken in file order,
-    // i.e. the first file wins.
     template <std::size_t N>
     consteval void appendChunk(std::array<Entry, ALIAS_COUNT> &out, std::size_t &pos,
                                const std::array<Entry, N> &chunk)
@@ -102,9 +89,6 @@ namespace
         }
     }
 
-    // Chains the BOOK_DOCS tables into one master table in file order. The
-    // comma fold appends one table per document sequentially and also works
-    // for an empty pack (folding to void).
     template <auto &...DOCS>
     consteval void chainTables(std::array<Entry, ALIAS_COUNT> &out, std::size_t &pos)
     {
@@ -123,9 +107,7 @@ namespace
         return out;
     }
 
-    // Ordering must match the old std::map<std::string, std::string> lookup
-    // table, i.e. lexicographical over unsigned bytes; std::string_view and
-    // std::char_traits<char> already compare that way.
+    // byte-wise, matching the old std::map lookup
     constexpr bool entryLess(const Entry &a, const Entry &b)
     {
         if (a.name != b.name)

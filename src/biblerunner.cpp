@@ -1,7 +1,3 @@
-//
-// Created by jaanonim on 01.02.24.
-//
-
 #include <KIO/CommandLauncherJob>
 #include <KLocalizedString>
 #include "biblerunner.h"
@@ -54,7 +50,7 @@ void BibleRunner::match(KRunner::RunnerContext &context)
 {
     Config loaded = loadConfigGuarded();
 
-    QString bibleId = QLatin1String(DEFAULT_BIBLE_ID); // fallback default translation
+    QString bibleId = QLatin1String(DEFAULT_BIBLE_ID);
     if (!loaded.bibleId.isEmpty())
     {
         bibleId = loaded.bibleId;
@@ -96,9 +92,7 @@ void BibleRunner::makeBrowserMatch(QList<KRunner::QueryMatch> *matches, const QS
 
 void BibleRunner::makeCopyMatch(QList<KRunner::QueryMatch> *matches, const QString &passage, const QString &url)
 {
-    // Only called with a configured runner (gated in match()); the guarded copy is
-    // taken here so a concurrent reloadConfiguration() cannot tear down the Config
-    // while the network request uses it.
+    // guarded copy: reloadConfiguration() may swap the config mid-request
     const Config loaded = loadConfigGuarded();
     auto info = fetchVerse(loaded.appKey, loaded.bibleId, passage);
     if (!info)
@@ -117,18 +111,13 @@ void BibleRunner::makeCopyMatch(QList<KRunner::QueryMatch> *matches, const QStri
     matches->append(match);
 }
 
-// Informational match shown while no API key is configured: verse text cannot
-// be copied without one, so instead of the copy match the runner offers this
-// hint, and running it opens the runner configuration
 void BibleRunner::makeSetKeyMatch(QList<KRunner::QueryMatch> *matches)
 {
     KRunner::QueryMatch match(this);
     match.setText(i18n("Set the YouVersion API key to copy verse text"));
     match.setSubtext(i18n("Opens the Bible Runner configuration"));
     match.setIcon(QIcon::fromTheme(QStringLiteral("settings-configure")));
-    // steady position below the browser match: Enter on the query should
-    // keep doing the browsing
-    match.setRelevance(0.5);
+    match.setRelevance(0.5); // below the browser match, so Enter keeps browsing
     match.setData(MatchAction::SetKey);
     matches->append(match);
 }
@@ -141,10 +130,7 @@ void BibleRunner::run(const KRunner::RunnerContext & /*context*/, const KRunner:
         QProcess::startDetached(QLatin1String("xdg-open"), {match.urls().first().toString()});
         break;
     case MatchAction::SetKey:
-        // As in the built-in help runner: systemsettings with the plasma search
-        // module, whose page hosts the runners' configuration modules (our kcm
-        // is installed in the kf6/krunner/kcms namespace and has no standalone
-        // kcmshell id)
+        // as in the built-in help runner: no standalone kcmshell for this kcm
         {
             auto *const job = new KIO::CommandLauncherJob(QStringLiteral("systemsettings"),
                                                           {QStringLiteral("kcm_plasmasearch"),
