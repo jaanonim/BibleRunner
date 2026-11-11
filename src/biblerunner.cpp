@@ -5,8 +5,10 @@
 #include <QProcess>
 #include <QApplication>
 #include <QClipboard>
-#include <QtCore>
+#include <QList>
 #include <QObject>
+#include <QString>
+#include <QUrl>
 #include <mutex>
 
 import biblerunner.api;
@@ -42,8 +44,10 @@ void BibleRunner::reloadConfiguration()
 void BibleRunner::init()
 {
     reloadConfiguration();
-    connect(this, &KRunner::AbstractRunner::prepare, this, []() {});
-    connect(this, &KRunner::AbstractRunner::teardown, this, []() {});
+
+    addSyntax(QStringLiteral("<book> <chapter>"), i18n("Open a whole chapter, e.g. Psalm 119"));
+    addSyntax(QStringLiteral("<book> <chapter>:<verse>"), i18n("Open a verse, e.g. John 3:16"));
+    addSyntax(QStringLiteral("<book> <chapter>:<verse>-<last verse>"), i18n("Open a verse range, e.g. 1kor 13:4-7"));
 }
 
 void BibleRunner::match(KRunner::RunnerContext &context)
@@ -85,8 +89,8 @@ void BibleRunner::makeBrowserMatch(QList<KRunner::QueryMatch> *matches, const QS
     qulr_list.append(qurl);
     match.setUrls(qulr_list);
 
-    match.setData(MatchAction::Browser);
-    match.setId(i18n("%1_browser", url));
+    match.setData(static_cast<int>(MatchAction::Browser));
+    match.setId(QStringLiteral("%1_browser").arg(url)); // ids are not translated
     matches->append(match);
 }
 
@@ -106,8 +110,8 @@ void BibleRunner::makeCopyMatch(QList<KRunner::QueryMatch> *matches, const QStri
     match.setSubtext(i18n("Copy text"));
     match.setIcon(QIcon::fromTheme(QStringLiteral("bible-icon")));
 
-    match.setData(MatchAction::Copy);
-    match.setId(i18n("%1_copy", url));
+    match.setData(static_cast<int>(MatchAction::Copy));
+    match.setId(QStringLiteral("%1_copy").arg(url));
     matches->append(match);
 }
 
@@ -118,13 +122,13 @@ void BibleRunner::makeSetKeyMatch(QList<KRunner::QueryMatch> *matches)
     match.setSubtext(i18n("Opens the Bible Runner configuration"));
     match.setIcon(QIcon::fromTheme(QStringLiteral("settings-configure")));
     match.setRelevance(0.5); // below the browser match, so Enter keeps browsing
-    match.setData(MatchAction::SetKey);
+    match.setData(static_cast<int>(MatchAction::SetKey));
     matches->append(match);
 }
 
 void BibleRunner::run(const KRunner::RunnerContext & /*context*/, const KRunner::QueryMatch &match)
 {
-    switch (match.data().toInt())
+    switch (static_cast<MatchAction>(match.data().toInt()))
     {
     case MatchAction::Browser:
         QProcess::startDetached(QLatin1String("xdg-open"), {match.urls().first().toString()});

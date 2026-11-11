@@ -18,7 +18,7 @@ protected:
 
 private:
     // match data tags, consumed by run()
-    enum MatchAction
+    enum class MatchAction : int
     {
         Copy = 0,
         Browser = 1,

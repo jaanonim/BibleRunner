@@ -15,6 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS I18n Config Runner KIO Notifications KCMUtils WidgetsAddons)
 find_package(Qt6 REQUIRED COMPONENTS Network)
+find_package(Boost REQUIRED) # Boost.Algorithm in modules/query.cppm (tests add unit_test_framework)
 
 # all modules in one linkable static library
 set(SHARED_MODULES
@@ -26,7 +27,9 @@ set(SHARED_MODULES
 add_library(biblerunner_shared STATIC)
 target_sources(biblerunner_shared PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES FILES ${SHARED_MODULES})
 set_target_properties(biblerunner_shared PROPERTIES CXX_SCAN_FOR_MODULES ON)
-target_link_libraries(biblerunner_shared PUBLIC Qt6::Network KF6::ConfigCore)
+target_link_libraries(biblerunner_shared PUBLIC Qt6::Network KF6::ConfigCore Boost::headers)
+# boost
+target_compile_options(biblerunner_shared PUBLIC "-isystem${Boost_INCLUDE_DIR}")
 
 kcoreaddons_add_plugin(biblerunner
         SOURCES

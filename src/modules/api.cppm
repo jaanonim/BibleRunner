@@ -1,6 +1,7 @@
 module;
 
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <utility>
@@ -260,19 +261,18 @@ namespace
         QNetworkAccessManager manager;
         QObject::connect(&manager, &QNetworkAccessManager::finished, &eventLoop, &QEventLoop::quit);
 
-        QNetworkReply *reply = submitGet(&manager, url, appKey);
+        // declared after the manager, so it is destroyed before it
+        std::unique_ptr<QNetworkReply> reply(submitGet(&manager, url, appKey));
         eventLoop.exec();
 
         QString error;
-        if (!replyOk(reply, &error))
+        if (!replyOk(reply.get(), &error))
         {
             qWarning() << "BibleRunner: request to" << url.toString() << "failed:" << error;
-            delete reply;
             return QJsonDocument();
         }
 
-        const QJsonDocument doc = replyJson(reply);
-        delete reply;
+        const QJsonDocument doc = replyJson(reply.get());
         if (!doc.isObject())
         {
             qWarning() << "BibleRunner: request to" << url.toString() << "returned non-JSON response";
@@ -283,15 +283,18 @@ namespace
 
     QString bibleAbbreviation(const QString &appKey, const QString &bibleId)
     {
-        // single-slot cache
+        // single-slot cache; the mutex is never held during the (blocking)
+        // request, so other threads are not stalled by the network
         static std::mutex cacheMutex;
-        std::lock_guard<std::mutex> lock(cacheMutex);
         static QString cachedBibleId;
         static QString cachedAbbreviation;
 
-        if (cachedBibleId == bibleId)
         {
-            return cachedAbbreviation;
+            std::lock_guard<std::mutex> lock(cacheMutex);
+            if (cachedBibleId == bibleId)
+            {
+                return cachedAbbreviation;
+            }
         }
 
         QJsonDocument doc = apiGet(appKey, bibleInfoUrl(bibleId));
@@ -307,6 +310,7 @@ namespace
         }
 
         // cached even when empty (don't hammer the API)
+        std::lock_guard<std::mutex> lock(cacheMutex);
         cachedBibleId = bibleId;
         cachedAbbreviation = abbreviation;
         return abbreviation;

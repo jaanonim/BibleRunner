@@ -1,6 +1,10 @@
 module;
 
 #include <optional>
+#include <string>
+#include <vector>
+
+#include <boost/algorithm/string/join.hpp>
 
 #include <QRegularExpression>
 #include <QString>
@@ -25,6 +29,12 @@ namespace
     const QRegularExpression bookRegex(QLatin1String(R"(([123]\s?)?\p{L}+)"));
     const QRegularExpression separatorRegex(QLatin1String(R"([-:,.]+)"));
     const QRegularExpression spaceRegex(QLatin1String("\\s"));
+
+    // "3", "16", "18" -> "3.16-18" style strings built from reference parts
+    std::string joinParts(const std::vector<std::string> &parts, const char *separator)
+    {
+        return boost::algorithm::join(parts, separator);
+    }
 } // namespace
 
 export std::optional<QueryMatchInfo> parseQuery(const QString &rawQuery, const QString &bibleId)
@@ -58,36 +68,25 @@ export std::optional<QueryMatchInfo> parseQuery(const QString &rawQuery, const Q
     book = QString::fromStdString(search);
 
     text = text.trimmed();
-    QStringList split = text.split(separatorRegex);
-    QString url = QLatin1String("https://www.bible.com/bible/%1/%2.").arg(bibleId, book);
-    QString passage = book;
-    if (split.length() == 1)
-    {
-        text = split[0];
-        url.append(split[0]);
-        passage.append(QLatin1Char('.')).append(split[0]);
-    }
-    else if (split.length() == 2)
-    {
-        text = split[0] + QLatin1Char(':') + split[1];
-        url.append(split[0] + QLatin1Char('.') + split[1]);
-        passage.append(QLatin1Char('.')).append(split[0]).append(QLatin1Char('.')).append(split[1]);
-    }
-    else if (split.length() == 3)
-    {
-        text = split[0] + QLatin1Char(':') + split[1] + QLatin1Char('-') + split[2];
-        url.append(split[0] + QLatin1Char('.') + split[1] + QLatin1Char('-') + split[2]);
-        passage.append(QLatin1Char('.'))
-            .append(split[0])
-            .append(QLatin1Char('.'))
-            .append(split[1])
-            .append(QLatin1Char('-'))
-            .append(split[2]);
-    }
-    else
-    {
+    const QStringList split = text.split(separatorRegex);
+    if (split.size() > 3)
         return std::nullopt;
+
+    // chapter [, verse [, last verse]] -> {"3"}, {"3", "16"}, {"3", "16-18"}
+    std::vector<std::string> reference{split[0].toStdString()};
+    if (split.size() > 1)
+    {
+        std::vector<std::string> verses;
+        for (qsizetype i = 1; i < split.size(); ++i)
+            verses.push_back(split[i].toStdString());
+        reference.push_back(joinParts(verses, "-"));
     }
+
+    const std::string bookCode = book.toStdString();
+    const QString suffix = QString::fromStdString(joinParts(reference, "."));
+    text = QString::fromStdString(joinParts(reference, ":"));
+    const QString url = QStringLiteral("https://www.bible.com/bible/%1/%2.%3").arg(bibleId, book, suffix);
+    const QString passage = QString::fromStdString(bookCode + "." + joinParts(reference, "."));
 
     return QueryMatchInfo{book, text, passage, QUrl(url)};
 }
