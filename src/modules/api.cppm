@@ -79,9 +79,8 @@ namespace
         query.addQueryItem(QStringLiteral("fields[]"), QLatin1String("language_tag"));
         query.addQueryItem(QLatin1String("page_size"), QString::number(CATALOG_PAGE_SIZE));
         if (!pageToken.isEmpty())
-        {
             query.addQueryItem(QLatin1String("page_token"), pageToken);
-        }
+
         url.setQuery(query);
         return url;
     }
@@ -122,9 +121,7 @@ namespace
         QJsonParseError parseError;
         const QJsonDocument doc = QJsonDocument::fromJson(reply->readAll(), &parseError);
         if (parseError.error != QJsonParseError::NoError)
-        {
             return QJsonDocument();
-        }
         return doc;
     }
 } // namespace
@@ -147,7 +144,7 @@ export void fetchLanguages(QNetworkAccessManager *network, const QString &appKey
 {
     QNetworkReply *reply = submitGet(network, languagesUrl(), appKey);
     QObject::connect(reply, &QNetworkReply::finished, guard, [reply, done]()
-            {
+                     {
         reply->deleteLater();
 
         QString error;
@@ -186,12 +183,11 @@ namespace
         QNetworkReply *reply = submitGet(network, biblesCatalogUrl(pageToken), appKey);
         QObject::connect(reply, &QNetworkReply::finished, guard,
                          [=, entries = std::move(entries), done = done]() mutable
-                {
+                         {
                     reply->deleteLater();
                     if (cancelled())
-                    {
                         return;
-                    }
+                    
 
                     const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
                     QString error;
@@ -223,9 +219,8 @@ namespace
                                                ? idValue.toString()
                                                : QString::number(idValue.toVariant().toLongLong());
                         if (id.isEmpty())
-                        {
                             continue;
-                        }
+                        
                         BibleEntry entry;
                         entry.id = id;
                         entry.title = version.value(QLatin1String("title")).toString();
@@ -292,9 +287,7 @@ namespace
         {
             std::lock_guard<std::mutex> lock(cacheMutex);
             if (cachedBibleId == bibleId)
-            {
                 return cachedAbbreviation;
-            }
         }
 
         QJsonDocument doc = apiGet(appKey, bibleInfoUrl(bibleId));
@@ -304,9 +297,7 @@ namespace
             QJsonObject obj = doc.object();
             abbreviation = obj.value(QLatin1String("localized_abbreviation")).toString();
             if (abbreviation.isEmpty())
-            {
                 abbreviation = obj.value(QLatin1String("abbreviation")).toString();
-            }
         }
 
         // cached even when empty (don't hammer the API)
@@ -321,29 +312,21 @@ export std::optional<VerseInfo> fetchVerse(const QString &appKey, const QString 
 {
     QJsonDocument doc = apiGet(appKey, biblePassagesUrl(bibleId, passage));
     if (!doc.isObject())
-    {
         return std::nullopt;
-    }
 
     QJsonObject obj = doc.object();
     QString content = obj.value(QLatin1String("content")).toString();
     if (content.isEmpty())
-    {
         return std::nullopt;
-    }
 
     VerseInfo info;
     info.title = obj.value(QLatin1String("reference")).toString();
     if (info.title.isEmpty())
-    {
         info.title = passage;
-    }
 
     QString abbreviation = bibleAbbreviation(appKey, bibleId);
     if (!abbreviation.isEmpty())
-    {
         info.title.append(QLatin1Char(' ')).append(abbreviation);
-    }
 
     info.text = content.trimmed();
 

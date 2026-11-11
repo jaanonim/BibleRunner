@@ -56,15 +56,11 @@ void BibleRunner::match(KRunner::RunnerContext &context)
 
     QString bibleId = QLatin1String(DEFAULT_BIBLE_ID);
     if (!loaded.bibleId.isEmpty())
-    {
         bibleId = loaded.bibleId;
-    }
 
     auto info = parseQuery(context.query(), bibleId);
     if (!info)
-    {
         return;
-    }
 
     QList<KRunner::QueryMatch> matches;
     makeBrowserMatch(&matches, info->book, info->text, info->url.toString());
@@ -82,6 +78,7 @@ void BibleRunner::makeBrowserMatch(QList<KRunner::QueryMatch> *matches, const QS
     match.setText(i18n("Open %1 %2", book, text));
     match.setSubtext(i18n("Open Bible in browser"));
     match.setIcon(QIcon::fromTheme(QStringLiteral("bible-icon")));
+    match.setRelevance(0.9);
 
     QUrl qurl;
     qurl.setUrl(url);
@@ -100,15 +97,14 @@ void BibleRunner::makeCopyMatch(QList<KRunner::QueryMatch> *matches, const QStri
     const Config loaded = loadConfigGuarded();
     auto info = fetchVerse(loaded.appKey, loaded.bibleId, passage);
     if (!info)
-    {
         return;
-    }
 
     KRunner::QueryMatch match(this);
     match.setText(i18n("%1 - %2", info->text, info->title));
     match.setMultiLine(true);
     match.setSubtext(i18n("Copy text"));
     match.setIcon(QIcon::fromTheme(QStringLiteral("bible-icon")));
+    match.setRelevance(0.8);
 
     match.setData(static_cast<int>(MatchAction::Copy));
     match.setId(QStringLiteral("%1_copy").arg(url));
@@ -121,7 +117,7 @@ void BibleRunner::makeSetKeyMatch(QList<KRunner::QueryMatch> *matches)
     match.setText(i18n("Set the YouVersion API key to copy verse text"));
     match.setSubtext(i18n("Opens the Bible Runner configuration"));
     match.setIcon(QIcon::fromTheme(QStringLiteral("settings-configure")));
-    match.setRelevance(0.5); // below the browser match, so Enter keeps browsing
+    match.setRelevance(0.5);
     match.setData(static_cast<int>(MatchAction::SetKey));
     matches->append(match);
 }

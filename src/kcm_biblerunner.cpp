@@ -114,18 +114,15 @@ BibleRunnerConfig::BibleRunnerConfig(QObject *parent, const KPluginMetaData &dat
 void BibleRunnerConfig::scheduleFetch()
 {
     if (appKeyEdit->password().isEmpty())
-    {
         return;
-    }
+
     fetchDebounce->start();
 }
 
 void BibleRunnerConfig::startFetch()
 {
     if (appKeyEdit->password().isEmpty())
-    {
         return;
-    }
 
     // supersede any in-flight fetch
     const int generation = ++fetchGeneration;
@@ -147,14 +144,12 @@ void BibleRunnerConfig::startFetch()
                    [this, generation](LanguagesResult result)
                    {
                        if (generation != fetchGeneration)
-                       {
                            return;
-                       }
+
                        cache.languages = std::move(result.languages);
                        if (!result.error.isEmpty())
-                       {
                            fetchError = result.error;
-                       }
+
                        languagesDone = true;
                        finishFetch(generation);
                    });
@@ -163,14 +158,11 @@ void BibleRunnerConfig::startFetch()
                 [this, generation](BiblesResult result)
                 {
                     if (generation != fetchGeneration)
-                    {
                         return;
-                    }
+
                     cache.bibles = std::move(result.bibles);
                     if (!result.error.isEmpty())
-                    {
                         fetchError = result.error;
-                    }
                     biblesDone = true;
                     finishFetch(generation);
                 });
@@ -179,9 +171,7 @@ void BibleRunnerConfig::startFetch()
 void BibleRunnerConfig::finishFetch(int generation)
 {
     if (generation != fetchGeneration || !languagesDone || !biblesDone)
-    {
         return;
-    }
 
     if (fetchError.isEmpty() && !cache.bibles.isEmpty())
     {
@@ -205,13 +195,10 @@ void BibleRunnerConfig::finishFetch(int generation)
     const CatalogCache cached = readCatalogCache();
 
     if (cache.bibles.isEmpty())
-    {
         cache.bibles = cached.bibles;
-    }
     if (cache.languages.isEmpty())
-    {
         cache.languages = cached.languages;
-    }
+
     applyCatalog();
     statusLabel->setText(i18n("Bible version fetch failed: %1", fetchError));
 }
@@ -225,14 +212,12 @@ void BibleRunnerConfig::applyCatalog()
         // "language - title (abbreviation)"
         QString language = cache.languages.value(bible.languageTag).toString();
         if (language.isEmpty())
-        {
             language = bible.languageTag;
-        }
+
         QString display = language + QLatin1String(" - ") + bible.title;
         if (!bible.abbreviation.isEmpty())
-        {
             display += QLatin1String(" (") + bible.abbreviation + QLatin1Char(')');
-        }
+
         versions.emplace_back(display, bible.id);
     }
 
@@ -262,15 +247,12 @@ void BibleRunnerConfig::reselectSaved()
         QString label = i18nc("@item:inlistbox version id not found in the version list",
                               "%1 (unknown version)", wanted);
         if (bibleIdCombo->findText(label) < 0)
-        {
             bibleIdCombo->addItem(label, wanted);
-        }
+
         index = bibleIdCombo->findData(wanted);
     }
     if (index >= 0)
-    {
         bibleIdCombo->setCurrentIndex(index);
-    }
 }
 
 void BibleRunnerConfig::load()
@@ -287,9 +269,7 @@ void BibleRunnerConfig::load()
     reselectSaved();
 
     if (!stored.appKey.isEmpty() && catalogCacheStale(cache))
-    {
         fetchDebounce->start(CATALOG_DEBOUNCE_MS);
-    }
 
     setNeedsSave(false);
     setRepresentsDefaults(stored.appKey.isEmpty() && (savedBibleId.isEmpty() || savedBibleId == QLatin1String(DEFAULT_BIBLE_ID)));
@@ -303,17 +283,11 @@ void BibleRunnerConfig::save()
     const int index = bibleIdCombo->currentIndex();
     QVariant versionId;
     if (index >= 0 && bibleIdCombo->itemText(index).trimmed() == typed)
-    {
         versionId = bibleIdCombo->itemData(index);
-    }
     if (versionId.isValid())
-    {
         savedBibleId = versionId.toString();
-    }
     else if (!typed.isEmpty())
-    {
         savedBibleId = typed;
-    }
 
     Config current;
     current.appKey = appKeyEdit->password();
@@ -339,9 +313,7 @@ void BibleRunnerConfig::defaults()
         const QSignalBlocker comboBlocker(bibleIdCombo);
         const int index = bibleIdCombo->findData(QLatin1String(DEFAULT_BIBLE_ID));
         if (index >= 0)
-        {
             bibleIdCombo->setCurrentIndex(index);
-        }
     }
     refreshButton->setEnabled(false);
     setNeedsSave(true);
