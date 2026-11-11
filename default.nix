@@ -6,6 +6,7 @@
   lib,
   kdePackages,
   qt6,
+  boost,
 }:
 # clang, not gcc: gcc 16 rejects Qt headers inside C++20 module units, and
 # clang-scan-deps only honors command-line flags (hence CXXFLAGS below).
@@ -53,9 +54,14 @@ clangStdenv.mkDerivation {
     kdePackages.kcmutils
     kdePackages.kwidgetsaddons
     qt6.qtbase
+    # headers (dev) + shared lib (out) for the Boost.Test tests
+    boost
   ];
 
-  doCheck = false;
+  # run the unit tests (built only with BUILD_TESTING=ON, see
+  # src/CMakeLists.txt); the cmake hook already sets CTEST_OUTPUT_ON_FAILURE=1
+  doCheck = true;
+  checkPhase = "ctest";
 
-  cmakeFlags = ["-GNinja"]; # C++20 modules need Ninja
+  cmakeFlags = ["-GNinja" "-DBUILD_TESTING=ON"]; # C++20 modules need Ninja
 }

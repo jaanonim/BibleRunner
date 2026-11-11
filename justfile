@@ -15,7 +15,7 @@ run: build
 status:
     QT_PLUGIN_PATH="{{justfile_directory()}}/result/lib/qt-6/plugins:${QT_PLUGIN_PATH:-}" krunner --list | grep -i bible
 
-# Build and run the unit tests
+# Build and run the unit tests (compiler: CC/CXX from the shell, see shell.nix)
 test:
     cmake -B build -S src -G Ninja -DBUILD_TESTING=ON
     cmake --build build

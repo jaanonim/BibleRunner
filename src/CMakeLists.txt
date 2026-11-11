@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
 project(biblerunner LANGUAGES CXX)
-
 set(KF6_MIN_VERSION "5.90")
 
 find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
@@ -17,27 +16,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS I18n Config Runner KIO Notifications KCMUtils WidgetsAddons)
 find_package(Qt6 REQUIRED COMPONENTS Network)
 
-# modules imported by both plugins, so they need a PUBLIC CXX_MODULES file
-# set of their own -> separate static library
+# all modules in one linkable static library
 set(SHARED_MODULES
     modules/api.cppm
     modules/config.cppm
+    modules/cache.cppm
+    modules/query.cppm
 )
 add_library(biblerunner_shared STATIC)
 target_sources(biblerunner_shared PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES FILES ${SHARED_MODULES})
 set_target_properties(biblerunner_shared PROPERTIES CXX_SCAN_FOR_MODULES ON)
 target_link_libraries(biblerunner_shared PUBLIC Qt6::Network KF6::ConfigCore)
 
-set(RUNNER_MODULES
-    modules/query.cppm
-)
-
 kcoreaddons_add_plugin(biblerunner
         SOURCES
         biblerunner.cpp biblerunner.h
-        ${RUNNER_MODULES}
         INSTALL_NAMESPACE "kf6/krunner")
-target_sources(biblerunner PRIVATE FILE_SET cxx_modules TYPE CXX_MODULES FILES ${RUNNER_MODULES})
 set_target_properties(biblerunner PROPERTIES CXX_SCAN_FOR_MODULES ON)
 
 # books.cpp is compiled by g++ (needs C++26 reflection, see modules/books.h).
@@ -89,11 +83,14 @@ add_custom_command(OUTPUT "${BOOKS_OBJ}"
                 "${BOOK_TABLES_H}"
         VERBATIM)
 set_source_files_properties("${BOOKS_OBJ}" PROPERTIES EXTERNAL_OBJECT TRUE GENERATED TRUE)
-target_sources(biblerunner PRIVATE "${BOOKS_OBJ}")
+
+# the prebuilt g++ object, in its own archive
+add_library(biblerunner_books STATIC "${BOOKS_OBJ}")
+set_target_properties(biblerunner_books PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(biblerunner_shared PUBLIC biblerunner_books)
 target_link_libraries(biblerunner
         biblerunner_shared
         KF6::I18n
-        KF6::ConfigCore
         KF6::Runner
         KF6::KIOWidgets
         KF6::Notifications
@@ -104,17 +101,21 @@ kcoreaddons_add_plugin(kcm_biblerunner
         SOURCES
         kcm_biblerunner.cpp kcm_biblerunner.h
         INSTALL_NAMESPACE "kf6/krunner/kcms")
+set_target_properties(kcm_biblerunner PROPERTIES CXX_SCAN_FOR_MODULES ON)
 target_link_libraries(kcm_biblerunner
         biblerunner_shared
-        Qt6::Network
         Qt6::Widgets
         KF6::I18n
-        KF6::ConfigCore
         KF6::KCMUtils
         KF6::WidgetsAddons
 )
-set_target_properties(kcm_biblerunner PROPERTIES CXX_SCAN_FOR_MODULES ON)
-target_sources(kcm_biblerunner PRIVATE FILE_SET cxx_modules TYPE CXX_MODULES FILES modules/cache.cppm)
 
 set(KDE_INSTALL_ICONDIR "/usr/share/pixmaps/" CACHE STRING "Default icon directory")
 install(FILES bible-icon.png DESTINATION ${KDE_INSTALL_ICONDIR})
+
+# unit tests, built only with BUILD_TESTING=ON (justfile test recipe)
+if(BUILD_TESTING)
+    enable_testing()
+    find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+    add_subdirectory(tests)
+endif()
