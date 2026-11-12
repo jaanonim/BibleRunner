@@ -1,200 +1,68 @@
 {
-    "GEN": [
-        "1mos"
-    ],
-    "EXO": [
-        "2mos"
-    ],
-    "LEV": [
-        "3mos"
-    ],
-    "NUM": [
-        "4mos"
-    ],
-    "DEU": [
-        "5mos"
-    ],
-    "JOS": [
-        "jos"
-    ],
-    "JDG": [
-        "dom"
-    ],
-    "RUT": [
-        "rut"
-    ],
-    "_1SA": [
-        "1sam"
-    ],
-    "_2SA": [
-        "2sam"
-    ],
-    "_1KI": [
-        "1kong"
-    ],
-    "_2KI": [
-        "2kong"
-    ],
-    "_1CH": [
-        "1krøn"
-    ],
-    "_2CH": [
-        "2krøn"
-    ],
-    "EZR": [
-        "esra"
-    ],
-    "NEH": [
-        "neh"
-    ],
-    "EST": [
-        "est"
-    ],
-    "JOB": [
-        "job"
-    ],
-    "PSA": [
-        "sal"
-    ],
-    "PRO": [
-        "ordsp"
-    ],
-    "ECC": [
-        "fork"
-    ],
-    "SNG": [
-        "høys"
-    ],
-    "ISA": [
-        "jes"
-    ],
-    "JER": [
-        "jer"
-    ],
-    "LAM": [
-        "klag"
-    ],
-    "EZK": [
-        "esek"
-    ],
-    "DAN": [
-        "dan"
-    ],
-    "HOS": [
-        "hos"
-    ],
-    "JOL": [
-        "jol"
-    ],
-    "AMO": [
-        "am"
-    ],
-    "OBA": [
-        "ob"
-    ],
-    "JON": [
-        "jona"
-    ],
-    "MIC": [
-        "mi"
-    ],
-    "NAM": [
-        "nah"
-    ],
-    "HAB": [
-        "hab"
-    ],
-    "ZEP": [
-        "sef"
-    ],
-    "HAG": [
-        "hag"
-    ],
-    "ZEC": [
-        "sak"
-    ],
-    "MAL": [
-        "mal"
-    ],
-    "MAT": [
-        "matt"
-    ],
-    "MRK": [
-        "mark"
-    ],
-    "LUK": [
-        "luk"
-    ],
-    "JHN": [
-        "joh"
-    ],
-    "ACT": [
-        "apg"
-    ],
-    "ROM": [
-        "rom"
-    ],
-    "_1CO": [
-        "1kor"
-    ],
-    "_2CO": [
-        "2kor"
-    ],
-    "GAL": [
-        "gal"
-    ],
-    "EPH": [
-        "ef"
-    ],
-    "PHP": [
-        "fil"
-    ],
-    "COL": [
-        "kol"
-    ],
-    "_1TH": [
-        "1tess"
-    ],
-    "_2TH": [
-        "2tess"
-    ],
-    "_1TI": [
-        "1tim"
-    ],
-    "_2TI": [
-        "2tim"
-    ],
-    "TIT": [
-        "tit"
-    ],
-    "PHM": [
-        "filem"
-    ],
-    "HEB": [
-        "hebr"
-    ],
-    "JAS": [
-        "jak"
-    ],
-    "_1PE": [
-        "1pet"
-    ],
-    "_2PE": [
-        "2pet"
-    ],
-    "_1JN": [
-        "1joh"
-    ],
-    "_2JN": [
-        "2joh"
-    ],
-    "_3JN": [
-        "3joh"
-    ],
-    "JUD": [
-        "jud"
-    ],
-    "REV": [
-        "åp"
-    ]
+  "GEN": ["1mos"],
+  "EXO": ["2mos"],
+  "LEV": ["3mos"],
+  "NUM": ["4mos"],
+  "DEU": ["5mos"],
+  "JOS": ["jos"],
+  "JDG": ["dom"],
+  "RUT": ["rut"],
+  "_1SA": ["1sam"],
+  "_2SA": ["2sam"],
+  "_1KI": ["1kong"],
+  "_2KI": ["2kong"],
+  "_1CH": ["1krøn"],
+  "_2CH": ["2krøn"],
+  "EZR": ["esra"],
+  "NEH": ["neh"],
+  "EST": ["est"],
+  "JOB": ["job"],
+  "PSA": ["sal"],
+  "PRO": ["ordsp"],
+  "ECC": ["fork"],
+  "SNG": ["høys"],
+  "ISA": ["jes"],
+  "JER": ["jer"],
+  "LAM": ["klag"],
+  "EZK": ["esek"],
+  "DAN": ["dan"],
+  "HOS": ["hos"],
+  "JOL": ["jol"],
+  "AMO": ["am"],
+  "OBA": ["ob"],
+  "JON": ["jona"],
+  "MIC": ["mi"],
+  "NAM": ["nah"],
+  "HAB": ["hab"],
+  "ZEP": ["sef"],
+  "HAG": ["hag"],
+  "ZEC": ["sak"],
+  "MAL": ["mal"],
+  "MAT": ["matt"],
+  "MRK": ["mark"],
+  "LUK": ["luk"],
+  "JHN": ["joh"],
+  "ACT": ["apg"],
+  "ROM": ["rom"],
+  "_1CO": ["1kor"],
+  "_2CO": ["2kor"],
+  "GAL": ["gal"],
+  "EPH": ["ef"],
+  "PHP": ["fil"],
+  "COL": ["kol"],
+  "_1TH": ["1tess"],
+  "_2TH": ["2tess"],
+  "_1TI": ["1tim"],
+  "_2TI": ["2tim"],
+  "TIT": ["tit"],
+  "PHM": ["filem"],
+  "HEB": ["hebr"],
+  "JAS": ["jak"],
+  "_1PE": ["1pet"],
+  "_2PE": ["2pet"],
+  "_1JN": ["1joh"],
+  "_2JN": ["2joh"],
+  "_3JN": ["3joh"],
+  "JUD": ["jud"],
+  "REV": ["åp"]
 }

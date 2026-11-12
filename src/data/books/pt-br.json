@@ -1,265 +1,68 @@
 {
-    "GEN": [
-        "gênesis",
-        "gn"
-    ],
-    "EXO": [
-        "êxodo",
-        "ex"
-    ],
-    "LEV": [
-        "levítico",
-        "lv"
-    ],
-    "NUM": [
-        "números",
-        "nm"
-    ],
-    "DEU": [
-        "deuteronômio",
-        "dt"
-    ],
-    "JOS": [
-        "josué",
-        "js"
-    ],
-    "JDG": [
-        "juízes",
-        "jz"
-    ],
-    "RUT": [
-        "rute",
-        "rt"
-    ],
-    "_1SA": [
-        "1samuel",
-        "1sm"
-    ],
-    "_2SA": [
-        "2samuel",
-        "2sm"
-    ],
-    "_1KI": [
-        "1reis",
-        "1rs"
-    ],
-    "_2KI": [
-        "2reis",
-        "2rs"
-    ],
-    "_1CH": [
-        "1crônicas",
-        "1cr"
-    ],
-    "_2CH": [
-        "2crônicas",
-        "2cr"
-    ],
-    "EZR": [
-        "esdras",
-        "ed"
-    ],
-    "NEH": [
-        "neemias",
-        "ne"
-    ],
-    "EST": [
-        "ester",
-        "et"
-    ],
-    "JOB": [
-        "jó"
-    ],
-    "PSA": [
-        "salmos",
-        "sl"
-    ],
-    "PRO": [
-        "provérbios",
-        "pv"
-    ],
-    "ECC": [
-        "eclesiastes",
-        "ec"
-    ],
-    "SNG": [
-        "cantaresdesalomão",
-        "ct"
-    ],
-    "ISA": [
-        "isaías",
-        "is"
-    ],
-    "JER": [
-        "jeremias",
-        "jr"
-    ],
-    "LAM": [
-        "lamentações",
-        "lm"
-    ],
-    "EZK": [
-        "ezequiel",
-        "ez"
-    ],
-    "DAN": [
-        "daniel",
-        "dn"
-    ],
-    "HOS": [
-        "oséias",
-        "os"
-    ],
-    "JOL": [
-        "joel",
-        "jl"
-    ],
-    "AMO": [
-        "amós",
-        "am"
-    ],
-    "OBA": [
-        "obadias",
-        "ob"
-    ],
-    "JON": [
-        "jonas",
-        "jn"
-    ],
-    "MIC": [
-        "miquéias",
-        "mq"
-    ],
-    "NAM": [
-        "naum",
-        "na"
-    ],
-    "HAB": [
-        "habacuque",
-        "hc"
-    ],
-    "ZEP": [
-        "sofonias",
-        "sf"
-    ],
-    "HAG": [
-        "ageu",
-        "ag"
-    ],
-    "ZEC": [
-        "zacarias",
-        "zc"
-    ],
-    "MAL": [
-        "malaquias",
-        "ml"
-    ],
-    "MAT": [
-        "mateus",
-        "mt"
-    ],
-    "MRK": [
-        "marcos",
-        "mc"
-    ],
-    "LUK": [
-        "lucas",
-        "lc"
-    ],
-    "JHN": [
-        "joão",
-        "jo"
-    ],
-    "ACT": [
-        "atos",
-        "at"
-    ],
-    "ROM": [
-        "romanos",
-        "rm"
-    ],
-    "_1CO": [
-        "1coríntios",
-        "1co"
-    ],
-    "_2CO": [
-        "2coríntios",
-        "2co"
-    ],
-    "GAL": [
-        "gálatas",
-        "gl"
-    ],
-    "EPH": [
-        "efésios",
-        "ef"
-    ],
-    "PHP": [
-        "filipenses",
-        "fp"
-    ],
-    "COL": [
-        "colossenses",
-        "cl"
-    ],
-    "_1TH": [
-        "1tessalonicenses",
-        "1ts"
-    ],
-    "_2TH": [
-        "2tessalonicenses",
-        "2ts"
-    ],
-    "_1TI": [
-        "1timóteo",
-        "1tm"
-    ],
-    "_2TI": [
-        "2timóteo",
-        "2tm"
-    ],
-    "TIT": [
-        "tito",
-        "tt"
-    ],
-    "PHM": [
-        "filemon",
-        "fm"
-    ],
-    "HEB": [
-        "hebreus",
-        "hb"
-    ],
-    "JAS": [
-        "tiago",
-        "tg"
-    ],
-    "_1PE": [
-        "1pedro",
-        "1pe"
-    ],
-    "_2PE": [
-        "2pedro",
-        "2pe"
-    ],
-    "_1JN": [
-        "1joão",
-        "1jo"
-    ],
-    "_2JN": [
-        "2joão",
-        "2jo"
-    ],
-    "_3JN": [
-        "3joão",
-        "3jo"
-    ],
-    "JUD": [
-        "judas",
-        "jd"
-    ],
-    "REV": [
-        "apocalipse",
-        "ap"
-    ]
+  "GEN": ["gênesis", "genesis", "gn"],
+  "EXO": ["êxodo", "exodo", "ex"],
+  "LEV": ["levítico", "levitico", "lv"],
+  "NUM": ["números", "numeros", "nm"],
+  "DEU": ["deuteronômio", "deuteronomio", "dt"],
+  "JOS": ["josué", "josue", "js"],
+  "JDG": ["juízes", "juizes", "jz"],
+  "RUT": ["rute", "rt"],
+  "_1SA": ["1samuel", "1sm"],
+  "_2SA": ["2samuel", "2sm"],
+  "_1KI": ["1reis", "1rs"],
+  "_2KI": ["2reis", "2rs"],
+  "_1CH": ["1crônicas", "1cronicas", "1cr"],
+  "_2CH": ["2crônicas", "2cronicas", "2cr"],
+  "EZR": ["esdras", "ed"],
+  "NEH": ["neemias", "ne"],
+  "EST": ["ester", "et"],
+  "JOB": ["jó"],
+  "PSA": ["salmos", "sl"],
+  "PRO": ["provérbios", "proverbios", "pv"],
+  "ECC": ["eclesiastes", "ec"],
+  "SNG": ["cantaresdesalomão", "cantares", "cânticodoscânticos", "canticodoscanticos", "ct"],
+  "ISA": ["isaías", "isaias", "is"],
+  "JER": ["jeremias", "jr"],
+  "LAM": ["lamentações", "lamentaçoes", "lamentacoes", "lm"],
+  "EZK": ["ezequiel", "ez"],
+  "DAN": ["daniel", "dn"],
+  "HOS": ["oséias", "oseias", "os"],
+  "JOL": ["joel", "jl"],
+  "AMO": ["amós", "amos", "am"],
+  "OBA": ["obadias", "ob"],
+  "JON": ["jonas", "jn"],
+  "MIC": ["miquéias", "miqueias", "mq"],
+  "NAM": ["naum", "na"],
+  "HAB": ["habacuque", "hc"],
+  "ZEP": ["sofonias", "sf"],
+  "HAG": ["ageu", "ag"],
+  "ZEC": ["zacarias", "zc"],
+  "MAL": ["malaquias", "ml"],
+  "MAT": ["mateus", "mt"],
+  "MRK": ["marcos", "mc"],
+  "LUK": ["lucas", "lc"],
+  "JHN": ["joão", "joao", "jo"],
+  "ACT": ["atos", "at"],
+  "ROM": ["romanos", "rm"],
+  "_1CO": ["1coríntios", "1corintios", "1co"],
+  "_2CO": ["2coríntios", "2corintios", "2co"],
+  "GAL": ["gálatas", "galatas", "gl"],
+  "EPH": ["efésios", "efesios", "ef"],
+  "PHP": ["filipenses", "fp"],
+  "COL": ["colossenses", "cl"],
+  "_1TH": ["1tessalonicenses", "1ts"],
+  "_2TH": ["2tessalonicenses", "2ts"],
+  "_1TI": ["1timóteo", "1timoteo", "1tm"],
+  "_2TI": ["2timóteo", "2timoteo", "2tm"],
+  "TIT": ["tito", "tt"],
+  "PHM": ["filemon", "fm"],
+  "HEB": ["hebreus", "hb"],
+  "JAS": ["tiago", "tg"],
+  "_1PE": ["1pedro", "1pe"],
+  "_2PE": ["2pedro", "2pe"],
+  "_1JN": ["1joão", "1joao", "1jo"],
+  "_2JN": ["2joão", "2joao", "2jo"],
+  "_3JN": ["3joão", "3joao", "3jo"],
+  "JUD": ["judas", "jd"],
+  "REV": ["apocalipse", "ap"]
 }

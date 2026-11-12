@@ -25,9 +25,9 @@ export struct QueryMatchInfo
 
 namespace
 {
-    const QRegularExpression linkRegex(QLatin1String(R"(([123]\s?)?\p{L}+\s?\d{1,3}([:,.]\s?\d{1,3}(-\d{1,3})?)?)"));
+    const QRegularExpression linkRegex(QLatin1String(R"(([123]\s?)?\p{L}+\s?\d{1,3}([:,.]\s?\d{1,3}([-–—]\d{1,3})?)?)"));
     const QRegularExpression bookRegex(QLatin1String(R"(([123]\s?)?\p{L}+)"));
-    const QRegularExpression separatorRegex(QLatin1String(R"([-:,.]+)"));
+    const QRegularExpression separatorRegex(QLatin1String(R"([-–—:,.]+)"));
     const QRegularExpression spaceRegex(QLatin1String("\\s"));
 
     // "3", "16", "18" -> "3.16-18" style strings built from reference parts

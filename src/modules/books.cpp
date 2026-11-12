@@ -101,9 +101,8 @@ namespace
         std::size_t pos = 0;
         chainTables<BOOK_DOCS>(out, pos);
         if (pos != out.size())
-        {
             throw "alias table book count mismatch";
-        }
+
         return out;
     }
 
@@ -117,33 +116,31 @@ namespace
 
     constexpr auto sortedEntries(std::array<Entry, ALIAS_COUNT> entries)
     {
-        std::sort(entries.begin(), entries.end(), entryLess);
+        std::ranges::sort(entries, entryLess);
         return entries;
     }
 
-    constexpr std::size_t countBooks(const std::array<Entry, ALIAS_COUNT> &sorted)
+    // takes a mutable copy: ranges::unique must permute the entries
+    constexpr std::size_t countBooks(std::array<Entry, ALIAS_COUNT> sorted)
     {
-        std::size_t unique = 0;
-        for (std::size_t i = 0; i < sorted.size(); ++i)
-        {
-            if (i == 0 || sorted[i].name != sorted[i - 1].name)
-                ++unique;
-        }
-        return unique;
+        auto end = std::ranges::unique(sorted,
+                                       [](const Entry &a, const Entry &b)
+                                       { return a.name == b.name; })
+                       .begin();
+
+        return std::distance(sorted.begin(), end);
     }
 
     template <std::size_t M>
-    consteval std::array<Entry, M> dedupEntries(const std::array<Entry, ALIAS_COUNT> &sorted)
+    consteval std::array<Entry, M> dedupEntries(std::array<Entry, ALIAS_COUNT> sorted)
     {
-        std::array<Entry, M> kept{};
-        std::size_t next = 0;
-        for (std::size_t i = 0; i < sorted.size(); ++i)
-        {
-            if (i == 0 || sorted[i].name != sorted[i - 1].name)
-                kept[next++] = sorted[i];
-        }
-        if (next != M)
+        auto end = std::ranges::unique(sorted, {}, &Entry::name).begin();
+
+        if (std::ranges::distance(sorted.begin(), end) != M)
             throw "book alias table book count mismatch";
+
+        std::array<Entry, M> kept{};
+        std::ranges::copy(sorted.begin(), end, kept.begin());
 
         return kept;
     }
@@ -153,24 +150,17 @@ namespace
     constexpr std::size_t BOOK_COUNT = countBooks(SORTED);
     constexpr std::array<Entry, BOOK_COUNT> BOOKS = dedupEntries<BOOK_COUNT>(SORTED);
 
-    static_assert(std::adjacent_find(BOOKS.begin(),
-                                     BOOKS.end(),
-                                     [](const Entry &a, const Entry &b)
-                                     { return a.name == b.name; }) == BOOKS.end(),
+    static_assert(std::ranges::adjacent_find(BOOKS,
+                                             [](const Entry &a, const Entry &b)
+                                             { return a.name == b.name; }) == BOOKS.end(),
                   "book alias table contains a duplicate alias");
 } // namespace
 
 std::string lookupBook(const std::string &raw)
 {
     const std::string_view name{raw.data(), raw.size()};
-    const auto it = std::lower_bound(BOOKS.begin(),
-                                     BOOKS.end(),
-                                     name,
-                                     [](const Entry &entry, const std::string_view &key)
-                                     { return entry.name < key; });
+    const auto it = std::ranges::lower_bound(BOOKS, name, {}, &Entry::name);
     if (it != BOOKS.end() && it->name == name)
-    {
         return std::string(it->code);
-    }
     return {};
 }

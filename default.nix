@@ -23,45 +23,45 @@ let
     "-isystem ${qt6.qtbase.out}/mkspecs/linux-g++"
   ];
 in
-clangStdenv.mkDerivation {
-  pname = "biblerunner";
-  version = "1.0.0";
+  clangStdenv.mkDerivation {
+    name = "biblerunner";
+    version = "1.0.0";
 
-  env.CXXFLAGS = headerFlags;
-  # link flags stay out of CXXFLAGS (which also hits compile jobs)
-  env.NIX_LDFLAGS = "-L${gcc.cc.lib}/lib -rpath ${gcc.cc.lib}/lib";
+    env.CXXFLAGS = headerFlags;
+    # link flags stay out of CXXFLAGS (which also hits compile jobs)
+    env.NIX_LDFLAGS = "-L${gcc.cc.lib}/lib -rpath ${gcc.cc.lib}/lib";
 
-  passthru.headerFlags = headerFlags;
+    passthru.headerFlags = headerFlags;
 
-  src = ./src;
+    src = ./src;
 
-  nativeBuildInputs = [
-    cmake
-    ninja
-    gcc
-    kdePackages.extra-cmake-modules
-    qt6.wrapQtAppsHook
-  ];
+    nativeBuildInputs = [
+      cmake
+      ninja
+      gcc
+      kdePackages.extra-cmake-modules
+      qt6.wrapQtAppsHook
+    ];
 
-  buildInputs = [
-    kdePackages.kcoreaddons
-    kdePackages.ki18n
-    kdePackages.kconfig
-    kdePackages.krunner
-    kdePackages.kio
-    kdePackages.knotifications
-    # kcm_biblerunner (KCModule / KPasswordLineEdit)
-    kdePackages.kcmutils
-    kdePackages.kwidgetsaddons
-    qt6.qtbase
-    # headers (dev) + shared lib (out) for the Boost.Test tests
-    boost
-  ];
+    buildInputs = [
+      kdePackages.kcoreaddons
+      kdePackages.ki18n
+      kdePackages.kconfig
+      kdePackages.krunner
+      kdePackages.kio
+      kdePackages.knotifications
+      # kcm_biblerunner (KCModule / KPasswordLineEdit)
+      kdePackages.kcmutils
+      kdePackages.kwidgetsaddons
+      qt6.qtbase
+      # headers (dev) + shared lib (out) for the Boost.Test tests
+      boost
+    ];
 
-  # run the unit tests (built only with BUILD_TESTING=ON, see
-  # src/CMakeLists.txt); the cmake hook already sets CTEST_OUTPUT_ON_FAILURE=1
-  doCheck = true;
-  checkPhase = "ctest";
+    # run the unit tests (built only with BUILD_TESTING=ON, see
+    # src/CMakeLists.txt); the cmake hook already sets CTEST_OUTPUT_ON_FAILURE=1
+    doCheck = true;
+    checkPhase = "ctest";
 
-  cmakeFlags = ["-GNinja" "-DBUILD_TESTING=ON"]; # C++20 modules need Ninja
-}
+    cmakeFlags = ["-GNinja" "-DBUILD_TESTING=ON"]; # C++20 modules need Ninja
+  }

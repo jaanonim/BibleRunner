@@ -76,6 +76,9 @@ find_program(BOOKS_GXX g++ REQUIRED)
 set(BOOKS_OBJ "${CMAKE_CURRENT_BINARY_DIR}/books_gcc.o")
 add_custom_command(OUTPUT "${BOOKS_OBJ}"
         COMMAND "${BOOKS_GXX}" -std=c++26 -freflection -Wno-narrowing
+        # GCC's default 2^25 constexpr ops budget is not enough for the
+        # constexpr sort of the ~4k-entry alias table
+        "-fconstexpr-ops-limit=1073741824"
         "-I${CMAKE_CURRENT_SOURCE_DIR}/lib"
         "-I${CMAKE_CURRENT_BINARY_DIR}"
         -c "${CMAKE_CURRENT_SOURCE_DIR}/modules/books.cpp" -o "${BOOKS_OBJ}"
